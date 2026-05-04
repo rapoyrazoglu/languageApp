@@ -1,0 +1,457 @@
+openapi: 3.1.0
+info:
+  title: languageApp Registry API
+  version: 0.1.0
+  summary: Pack registry, authentication, and ingest endpoints.
+  description: |
+    The registry exposes pack reads (public) and pack writes / ingest (auth required).
+    Authoring tools can either upload a pack ZIP directly or import the latest GitHub release.
+
+    ### Error format
+    Every non-2xx response uses the `Error` schema below. Codes are stable identifiers — clients
+    may switch on them. New codes may be added; clients should treat unknown codes as generic.
+
+    ### Pagination
+    `GET /v1/packs` returns an opaque `nextCursor` when more results are available. Pass it
+    back as the `cursor` query param. Cursors are not URL-encoded by the server; clients should
+    URL-encode them when forming the next request.
+  license:
+    name: TBD
+servers:
+  - url: http://localhost:8080
+    description: Local development
+tags:
+  - name: health
+  - name: auth
+  - name: packs
+
+paths:
+  /healthz:
+    get:
+      tags: [health]
+      summary: Liveness probe
+      responses:
+        "200":
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, enum: [ok] }
+
+  /v1/auth/register:
+    post:
+      tags: [auth]
+      summary: Create a new account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User created; returns a fresh JWT.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenResponse" }
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: Email already in use
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /v1/auth/login:
+    post:
+      tags: [auth]
+      summary: Exchange email + password for a JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginRequest" }
+      responses:
+        "200":
+          description: Authenticated.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenResponse" }
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /v1/auth/me:
+    get:
+      tags: [auth]
+      summary: The current user
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /v1/packs:
+    get:
+      tags: [packs]
+      summary: List / search packs
+      parameters:
+        - in: query
+          name: language
+          schema: { type: string }
+          description: Filter by ISO 639 code (exact match)
+          example: ja
+        - in: query
+          name: level
+          schema: { type: string }
+          description: Filter by level (e.g. A1, B2)
+        - in: query
+          name: tag
+          schema: { type: string }
+          description: Filter by a single tag (any-of in pack tags)
+        - in: query
+          name: q
+          schema: { type: string }
+          description: Free-text match against name + description
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+        - in: query
+          name: cursor
+          schema: { type: string }
+          description: Opaque cursor from a previous response
+      responses:
+        "200":
+          description: Page of packs
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PackPage" }
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /v1/packs/{id}:
+    get:
+      tags: [packs]
+      summary: Get one pack and its versions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Pack + versions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pack, versions]
+                properties:
+                  pack: { $ref: "#/components/schemas/Pack" }
+                  versions:
+                    type: array
+                    items: { $ref: "#/components/schemas/PackVersion" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/packs/{id}/versions/{version}/download:
+    get:
+      tags: [packs]
+      summary: Get a presigned download URL for a pack version
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: path
+          name: version
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Signed URL valid for 10 minutes
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url, sha256, sizeBytes, expiresIn]
+                properties:
+                  url: { type: string, format: uri }
+                  sha256: { type: string }
+                  sizeBytes: { type: integer, format: int64 }
+                  expiresIn: { type: integer }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/packs/upload:
+    post:
+      tags: [packs]
+      summary: Upload a pack ZIP directly
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [pack]
+              properties:
+                pack:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Pack version stored
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IngestResult" }
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Pack id belongs to another user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: This (id, version) already exists
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "413":
+          description: Pack exceeds size limit
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422":
+          description: Pack failed validation; `error.fields` lists each failure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /v1/packs/import-github:
+    post:
+      tags: [packs]
+      summary: Import the latest GitHub release of a pack repo
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [repoUrl]
+              properties:
+                repoUrl:
+                  type: string
+                  format: uri
+                  example: https://github.com/ata/example-nihongo
+      responses:
+        "201":
+          description: Pack version stored
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IngestResult" }
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Pack id belongs to another user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: This (id, version) already exists
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422":
+          description: Pack failed validation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "502":
+          description: Could not reach GitHub
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    BadRequest:
+      description: Malformed request
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    RateLimited:
+      description: Too many requests; see Retry-After
+      headers:
+        Retry-After:
+          schema: { type: integer }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Stable identifier for client switching
+              enum:
+                - BAD_REQUEST
+                - INVALID_JSON
+                - MISSING_FIELD
+                - UNAUTHORIZED
+                - TOKEN_EXPIRED
+                - FORBIDDEN
+                - NOT_FOUND
+                - CONFLICT
+                - EMAIL_TAKEN
+                - VERSION_EXISTS
+                - PACK_OWNER_MISMATCH
+                - PACK_VALIDATION_FAILED
+                - PAYLOAD_TOO_LARGE
+                - RATE_LIMITED
+                - BAD_GATEWAY
+                - INTERNAL
+            message:
+              type: string
+            fields:
+              type: array
+              items:
+                type: object
+                required: [path, message]
+                properties:
+                  path: { type: string, description: "Body JSON pointer, query.<name>, or <file>#<pointer> for pack errors" }
+                  message: { type: string }
+
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        displayName: { type: string }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+
+    TokenResponse:
+      type: object
+      required: [token, expiresAt, user]
+      properties:
+        token: { type: string }
+        expiresAt: { type: string, format: date-time }
+        user: { $ref: "#/components/schemas/User" }
+
+    User:
+      type: object
+      required: [id, email]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        displayName: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    Pack:
+      type: object
+      required: [id, name, languageCode, languageName, authorName, license]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        languageCode: { type: string }
+        languageName: { type: string }
+        uiLanguage: { type: string }
+        level: { type: string }
+        authorName: { type: string }
+        authorUrl: { type: string }
+        license: { type: string }
+        homepage: { type: string }
+        repositoryUrl: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+        latestVersion: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    PackVersion:
+      type: object
+      required: [packId, version, schemaVersion, sha256, sizeBytes, source]
+      properties:
+        packId: { type: string }
+        version: { type: string }
+        schemaVersion: { type: string }
+        sha256: { type: string }
+        sizeBytes: { type: integer, format: int64 }
+        storageKey: { type: string }
+        source: { type: string, enum: [github, upload] }
+        sourceUrl: { type: string }
+        manifest: { type: object, description: "Cached manifest.json contents" }
+        minSdkVersion: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    PackPage:
+      type: object
+      required: [packs, limit]
+      properties:
+        packs:
+          type: array
+          items: { $ref: "#/components/schemas/Pack" }
+        nextCursor:
+          type: string
+          description: Opaque; pass to subsequent requests as `cursor`
+        limit:
+          type: integer
+
+    IngestResult:
+      type: object
+      required: [packId, version, sha256, sizeBytes]
+      properties:
+        packId: { type: string }
+        version: { type: string }
+        storageKey: { type: string }
+        sha256: { type: string }
+        sizeBytes: { type: integer, format: int64 }

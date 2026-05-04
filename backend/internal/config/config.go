@@ -20,10 +20,13 @@ type Config struct {
 
 	GitHubToken string
 
-	JWTSecret string
+	JWTSecret   string
 	JWTTTLHours int
 
 	MaxPackSizeBytes int64
+
+	RateLimitAnonPerMinute int
+	RateLimitUserPerMinute int
 }
 
 func Load() (*Config, error) {
@@ -51,6 +54,18 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("invalid JWT_TTL_HOURS: %w", err)
 	}
 	c.JWTTTLHours = ttl
+
+	anon, err := strconv.Atoi(getEnv("RATE_LIMIT_ANON_PER_MIN", "60"))
+	if err != nil {
+		return nil, fmt.Errorf("invalid RATE_LIMIT_ANON_PER_MIN: %w", err)
+	}
+	c.RateLimitAnonPerMinute = anon
+
+	user, err := strconv.Atoi(getEnv("RATE_LIMIT_USER_PER_MIN", "600"))
+	if err != nil {
+		return nil, fmt.Errorf("invalid RATE_LIMIT_USER_PER_MIN: %w", err)
+	}
+	c.RateLimitUserPerMinute = user
 
 	if c.DatabaseURL == "" {
 		return nil, fmt.Errorf("DATABASE_URL is required")

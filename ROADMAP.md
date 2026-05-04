@@ -47,18 +47,23 @@ Tarihler **niyet beyanı**dır, taahhüt değil.
 
 > Hedef: production'a koyabileceğimiz hale getirmek.
 
-- [ ] **Test**: ingest, validator ve auth için unit + integration test
-  (`go test ./...`)
-- [ ] **Rate limiting**: anonim ve auth'lu uçlar için ayrı limitler
+- [x] **Test**: validator (zip-slip, semver, lesson id eşleşmesi, eksik media,
+  …), auth (bcrypt + JWT), cursor encode/decode, rate limiter, error format —
+  hepsi `-race` ile yeşil
+- [x] **Rate limiting**: anonim ve auth'lu uçlar için token-bucket (60/dk vs
+  600/dk varsayılan, env ile ayarlanır)
+- [x] **Arama API'si**: dil + level + tag + serbest metin (ILIKE)
+- [x] **Pagination**: `/v1/packs` keyset cursor (updated_at, id)
+- [x] **Yapılandırılmış hatalar**: `{ error: { code, message, fields[] } }`
+  şeması, stable error code'lar
+- [x] **OpenAPI 3.1 spec**: `docs/openapi.yaml`
+- [x] **CI**: GitHub Actions — `go vet` + `golangci-lint` + `go test -race`
+- [x] **Container image**: GHCR'a otomatik push (main + semver tag)
 - [ ] **Audit log**: kim ne zaman pack publish/update etti
 - [ ] **Webhook desteği**: GitHub'da yeni release çıkınca otomatik ingest
-- [ ] **Arama API'si**: dil + level + tag + serbest metin
-- [ ] **Pagination**: `/v1/packs` cursor tabanlı
-- [ ] **Yapılandırılmış hatalar**: tek tip JSON şema, error code'larıyla
-- [ ] **OpenAPI 3.1 spec** (otomatik üretilen veya el yazımı)
-- [ ] **CI**: GitHub Actions — `go vet`, `go test`, `golangci-lint`
-- [ ] **Container image**: GHCR'a otomatik push
 - [ ] **Migration runner image** (prod'da goose'u container içinde çalıştır)
+- [ ] **Integration test**: Postgres + MinIO ile uçtan uca ingest
+- [ ] **Backend deploy** (Fly.io / Railway / VPS — kararlaştırılacak)
 
 ## Phase 3 — iOS SDK + Demo App
 

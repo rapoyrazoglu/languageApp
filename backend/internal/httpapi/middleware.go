@@ -19,17 +19,16 @@ func (s *Server) requireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token := bearerToken(r)
 		if token == "" {
-			writeError(w, http.StatusUnauthorized, "missing bearer token", nil)
+			writeAPIError(w, http.StatusUnauthorized, CodeUnauthorized, "missing bearer token")
 			return
 		}
 		claims, err := s.tokens.Verify(token)
 		if err != nil {
-			status := http.StatusUnauthorized
-			msg := "invalid token"
 			if errors.Is(err, auth.ErrTokenExpired) {
-				msg = "token expired"
+				writeAPIError(w, http.StatusUnauthorized, CodeTokenExpired, "token expired")
+				return
 			}
-			writeError(w, status, msg, nil)
+			writeAPIError(w, http.StatusUnauthorized, CodeUnauthorized, "invalid token")
 			return
 		}
 		ctx := context.WithValue(r.Context(), userIDKey, claims.UserID)

@@ -76,6 +76,18 @@ func run(logger *slog.Logger) error {
 		return err
 	}
 
+	limiter := httpapi.NewRateLimiter(
+		cfg.RateLimitAnonPerMinute,
+		cfg.RateLimitUserPerMinute,
+		func(token string) (string, bool) {
+			claims, err := tokens.Verify(token)
+			if err != nil {
+				return "", false
+			}
+			return claims.UserID, true
+		},
+	)
+
 	srv := httpapi.NewServer(httpapi.Deps{
 		Logger:      logger,
 		DB:          database,
@@ -84,6 +96,7 @@ func run(logger *slog.Logger) error {
 		GitHub:      gh,
 		Tokens:      tokens,
 		MaxPackSize: cfg.MaxPackSizeBytes,
+		Limiter:     limiter,
 	})
 
 	httpServer := &http.Server{

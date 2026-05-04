@@ -13,7 +13,15 @@ import (
 	"strings"
 
 	"github.com/santhosh-tekuri/jsonschema/v6"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
+
+// msgPrinter is required by jsonschema/v6 — some Kind types (Pattern, Format, …)
+// format their human-readable message with golang.org/x/text/message and panic
+// on a nil printer. Using English everywhere is fine; messages are developer-
+// facing, not end-user.
+var msgPrinter = message.NewPrinter(language.English)
 
 //go:embed schemas/*.json
 var schemaFS embed.FS
@@ -252,7 +260,7 @@ func appendSchemaErrors(res *ValidationResult, file string, err error) {
 			res.Errors = append(res.Errors, ValidationErr{
 				File:    file,
 				Pointer: leaf.InstanceLocation,
-				Message: leaf.Error.Kind.LocalizedString(nil),
+				Message: leaf.Error.Kind.LocalizedString(msgPrinter),
 			})
 		}
 		if len(res.Errors) == 0 {

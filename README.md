@@ -66,9 +66,15 @@ Backend MVP'si ayağa kalkıyor ve uçtan uca pack ingest edebiliyor:
 | S3 presigned download URL         | OK    |
 | Email + parola auth (bcrypt+JWT)  | OK    |
 | Pack ownership (id rezervasyonu)  | OK    |
+| Yapılandırılmış hata formatı      | OK    |
+| Arama + cursor pagination         | OK    |
+| Token-bucket rate limiting        | OK    |
+| OpenAPI 3.1 spec                  | OK    |
+| CI (vet + lint + test + race)     | OK    |
+| Image build → GHCR                | OK    |
 | iOS SDK                           | —     |
 | Android SDK                       | —     |
-| Pack arama / dizin UI             | —     |
+| Pack dizin UI                     | —     |
 
 Yol haritası için [ROADMAP.md](ROADMAP.md).
 
@@ -101,11 +107,14 @@ curl localhost:8080/healthz
 | POST   | `/v1/auth/register`                               |  —   | email + parola ile kayıt              |
 | POST   | `/v1/auth/login`                                  |  —   | JWT döner                             |
 | GET    | `/v1/auth/me`                                     |  ✓   | aktif kullanıcı                       |
-| GET    | `/v1/packs?language=ja`                           |  —   | pack listesi                          |
+| GET    | `/v1/packs?language=&level=&tag=&q=&limit=&cursor=` |  —   | arama + cursor pagination             |
 | GET    | `/v1/packs/{id}`                                  |  —   | tek pack + sürümleri                  |
 | GET    | `/v1/packs/{id}/versions/{version}/download`      |  —   | presigned indirme URL'i               |
 | POST   | `/v1/packs/upload`                                |  ✓   | multipart `pack` alanıyla zip yükleme |
 | POST   | `/v1/packs/import-github`                         |  ✓   | `{ "repoUrl": "..." }` ile içe aktar  |
+
+**Tam API kontratı** ve hata kodları: [docs/openapi.yaml](docs/openapi.yaml).
+Hatalar tek tip şemada gelir: `{ "error": { "code", "message", "fields[] } }`.
 
 ## Pack yazmak
 
