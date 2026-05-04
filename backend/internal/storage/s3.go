@@ -29,10 +29,18 @@ type Config struct {
 }
 
 func New(ctx context.Context, c Config) (*Client, error) {
-	awsCfg, err := awsconfig.LoadDefaultConfig(ctx,
+	opts := []func(*awsconfig.LoadOptions) error{
 		awsconfig.WithRegion(c.Region),
-		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(c.AccessKey, c.SecretKey, "")),
-	)
+	}
+	// Static credentials are only used when explicitly provided (MinIO/R2 in
+	// dev). On AWS we leave them empty so the SDK falls through to the IAM
+	// instance role / env / shared profile chain.
+	if c.AccessKey != "" && c.SecretKey != "" {
+		opts = append(opts, awsconfig.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(c.AccessKey, c.SecretKey, ""),
+		))
+	}
+	awsCfg, err := awsconfig.LoadDefaultConfig(ctx, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("aws config: %w", err)
 	}

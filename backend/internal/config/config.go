@@ -72,9 +72,13 @@ func Load() (*Config, error) {
 	if c.DatabaseURL == "" {
 		return nil, fmt.Errorf("DATABASE_URL is required")
 	}
-	if c.S3Endpoint == "" || c.S3AccessKey == "" || c.S3SecretKey == "" {
-		return nil, fmt.Errorf("S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY are required")
+	if c.S3Bucket == "" {
+		return nil, fmt.Errorf("S3_BUCKET is required")
 	}
+	// S3 endpoint + credentials are optional:
+	//  - On AWS, leave them empty so the SDK uses the default credential chain
+	//    (IAM instance role / env / profile) and the default S3 endpoint.
+	//  - For MinIO/R2/etc., set all three (endpoint + access + secret).
 	if len(c.JWTSecret) < 32 {
 		return nil, fmt.Errorf("JWT_SECRET must be at least 32 characters")
 	}
