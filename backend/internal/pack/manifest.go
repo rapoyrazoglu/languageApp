@@ -3,22 +3,22 @@ package pack
 // Manifest is the strongly-typed view of manifest.json.
 // JSON Schema validation runs first; this struct is for code that needs the values.
 type Manifest struct {
-	SchemaVersion  string         `json:"schemaVersion"`
-	ID             string         `json:"id"`
-	Name           string         `json:"name"`
-	Version        string         `json:"version"`
-	Description    string         `json:"description,omitempty"`
-	Language       Language       `json:"language"`
-	UILanguage     string         `json:"uiLanguage,omitempty"`
-	Level          string         `json:"level,omitempty"`
-	Author         Author         `json:"author"`
-	License        string         `json:"license"`
-	Homepage       string         `json:"homepage,omitempty"`
-	Repository     *Repository    `json:"repository,omitempty"`
-	Tags           []string       `json:"tags,omitempty"`
-	Lessons        []LessonRef    `json:"lessons"`
-	Dependencies   []Dependency   `json:"dependencies,omitempty"`
-	MinSDKVersion  string         `json:"minSdkVersion,omitempty"`
+	SchemaVersion string       `json:"schemaVersion"`
+	ID            string       `json:"id"`
+	Name          string       `json:"name"`
+	Version       string       `json:"version"`
+	Description   string       `json:"description,omitempty"`
+	Language      Language     `json:"language"`
+	UILanguage    string       `json:"uiLanguage,omitempty"`
+	Level         string       `json:"level,omitempty"`
+	Author        Author       `json:"author"`
+	License       string       `json:"license"`
+	Homepage      string       `json:"homepage,omitempty"`
+	Repository    *Repository  `json:"repository,omitempty"`
+	Tags          []string     `json:"tags,omitempty"`
+	Lessons       []LessonRef  `json:"lessons"`
+	Dependencies  []Dependency `json:"dependencies,omitempty"`
+	MinSDKVersion string       `json:"minSdkVersion,omitempty"`
 }
 
 type Language struct {

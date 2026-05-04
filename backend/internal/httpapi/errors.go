@@ -11,22 +11,22 @@ import (
 // Error codes returned in the `error.code` field. Stable string identifiers —
 // SDKs may switch on these. Do not rename without bumping the API contract.
 const (
-	CodeBadRequest          = "BAD_REQUEST"
-	CodeInvalidJSON         = "INVALID_JSON"
-	CodeMissingField        = "MISSING_FIELD"
-	CodeUnauthorized        = "UNAUTHORIZED"
-	CodeTokenExpired        = "TOKEN_EXPIRED"
-	CodeForbidden           = "FORBIDDEN"
-	CodeNotFound            = "NOT_FOUND"
-	CodeConflict            = "CONFLICT"
-	CodeEmailTaken          = "EMAIL_TAKEN"
-	CodeVersionExists       = "VERSION_EXISTS"
-	CodePackOwnerMismatch   = "PACK_OWNER_MISMATCH"
-	CodeValidationFailed    = "PACK_VALIDATION_FAILED"
-	CodePayloadTooLarge     = "PAYLOAD_TOO_LARGE"
-	CodeRateLimited         = "RATE_LIMITED"
-	CodeBadGateway          = "BAD_GATEWAY"
-	CodeInternal            = "INTERNAL"
+	CodeBadRequest        = "BAD_REQUEST"
+	CodeInvalidJSON       = "INVALID_JSON"
+	CodeMissingField      = "MISSING_FIELD"
+	CodeUnauthorized      = "UNAUTHORIZED"
+	CodeTokenExpired      = "TOKEN_EXPIRED"
+	CodeForbidden         = "FORBIDDEN"
+	CodeNotFound          = "NOT_FOUND"
+	CodeConflict          = "CONFLICT"
+	CodeEmailTaken        = "EMAIL_TAKEN"
+	CodeVersionExists     = "VERSION_EXISTS"
+	CodePackOwnerMismatch = "PACK_OWNER_MISMATCH"
+	CodeValidationFailed  = "PACK_VALIDATION_FAILED"
+	CodePayloadTooLarge   = "PAYLOAD_TOO_LARGE"
+	CodeRateLimited       = "RATE_LIMITED"
+	CodeBadGateway        = "BAD_GATEWAY"
+	CodeInternal          = "INTERNAL"
 )
 
 // APIError is the body shape for every non-2xx response.

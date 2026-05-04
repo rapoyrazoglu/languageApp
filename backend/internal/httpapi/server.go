@@ -143,7 +143,7 @@ func (s *Server) handleUpload(w http.ResponseWriter, r *http.Request) {
 			FieldError{Path: "pack", Message: "expected multipart file part named 'pack'"})
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	if header.Size > s.maxPackSize {
 		writeAPIError(w, http.StatusRequestEntityTooLarge, CodePayloadTooLarge,

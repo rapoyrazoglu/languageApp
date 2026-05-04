@@ -11,12 +11,13 @@ import (
 // handleListPacks supports filter + cursor pagination.
 //
 // Query params:
-//   language=ja        ISO 639 code, exact match
-//   level=A1           level filter, exact match
-//   tag=hiragana       tag filter (any-of in the tags array)
-//   q=hello            free-text search over name + description
-//   limit=50           1..100, default 50
-//   cursor=...         opaque, from a previous response
+//
+//	language=ja        ISO 639 code, exact match
+//	level=A1           level filter, exact match
+//	tag=hiragana       tag filter (any-of in the tags array)
+//	q=hello            free-text search over name + description
+//	limit=50           1..100, default 50
+//	cursor=...         opaque, from a previous response
 func (s *Server) handleListPacks(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 

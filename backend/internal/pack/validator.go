@@ -28,10 +28,10 @@ var schemaFS embed.FS
 
 // ValidationResult is what the API returns to the user.
 type ValidationResult struct {
-	Manifest *Manifest        `json:"manifest,omitempty"`
-	SHA256   string           `json:"sha256"`
-	Size     int64            `json:"size"`
-	Errors   []ValidationErr  `json:"errors,omitempty"`
+	Manifest *Manifest       `json:"manifest,omitempty"`
+	SHA256   string          `json:"sha256"`
+	Size     int64           `json:"size"`
+	Errors   []ValidationErr `json:"errors,omitempty"`
 }
 
 type ValidationErr struct {
@@ -246,7 +246,7 @@ func readZipEntry(f *zip.File) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rc.Close()
+	defer func() { _ = rc.Close() }()
 	const maxLessonBytes = 5 * 1024 * 1024 // 5 MB safety limit per file
 	return io.ReadAll(io.LimitReader(rc, maxLessonBytes))
 }

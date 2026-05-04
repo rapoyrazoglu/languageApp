@@ -85,8 +85,8 @@ func newValidator(t *testing.T) *Validator {
 func TestValidate_HappyPath_FlatLayout(t *testing.T) {
 	v := newValidator(t)
 	z := buildZip(t, "", map[string]any{
-		"manifest.json":     minimalManifest(),
-		"lessons/001.json":  minimalLesson(),
+		"manifest.json":    minimalManifest(),
+		"lessons/001.json": minimalLesson(),
 	})
 	res := v.ValidateZip(z)
 	if !res.Ok() {
@@ -259,9 +259,9 @@ func TestValidate_MediaPresentSatisfies(t *testing.T) {
 		},
 	}
 	z := buildZip(t, "", map[string]any{
-		"manifest.json":      minimalManifest(),
-		"lessons/001.json":   lesson,
-		"media/audio/a.mp3":  []byte{0xff, 0xfb, 0x90, 0x44}, // bogus mp3 bytes — only existence is checked
+		"manifest.json":     minimalManifest(),
+		"lessons/001.json":  lesson,
+		"media/audio/a.mp3": []byte{0xff, 0xfb, 0x90, 0x44}, // bogus mp3 bytes — only existence is checked
 	})
 	res := v.ValidateZip(z)
 	if !res.Ok() {
