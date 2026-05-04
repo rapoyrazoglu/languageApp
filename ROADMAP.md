@@ -115,6 +115,34 @@ Tarihler **niyet beyanı**dır, taahhüt değil.
 - [ ] Streak / hedefler
 - [ ] Topluluk: pack rating, yorum, "report content"
 
+## Phase 7 — Production hardening (launch öncesi)
+
+> Tetikleyici: ilk gerçek kullanıcılar / Instagram reklam akışı / iOS App
+> Store yayını. Şimdiki dev kurulumu ($32/ay, public subnet) → "max güvenlik"
+> moduna (~$120/ay) geçiş.
+
+- [ ] **Network**: EC2 private subnet'e taşı, public subnet'te ALB ayağa
+  kaldır, NAT Gateway + Internet Gateway. Inbound: ALB (443) → EC2 (8080).
+- [ ] **TLS**: ACM sertifika ALB'ye (Caddy yerine), HTTP→HTTPS redirect
+- [ ] **HA**: Auto Scaling Group (min 2, max 4), multi-AZ EC2
+- [ ] **DB HA**: RDS Multi-AZ failover, backup retention 7 → 30 gün
+- [ ] **Backup**: Cross-region snapshot replication (eu-west-1)
+- [ ] **WAF**: rate limit, SQL injection / XSS rules, bot defense, country
+  block (gerekirse)
+- [ ] **CDN**: CloudFront ALB önünde — edge cache + DDoS + ucuz egress
+- [ ] **Monitoring**: CloudWatch alarms → SNS pager (RDS CPU, EC2 health,
+  5xx oranı, audit log spike). PagerDuty veya OpsGenie entegrasyonu opsiyonel.
+- [ ] **Auth**: opsiyonel 2FA (TOTP), parola sıfırlama akışı (e-posta + token),
+  session revoke, account lockout
+- [ ] **Audit alarms**: anormal davranış tespiti — saatte 100+ upload, başka
+  ülkeden login, vb. SNS bildirimi
+- [ ] **Compliance temeli**: KVKK/GDPR aydınlatma metni, veri silme talebi
+  endpoint'i, retention policy yazımı
+- [ ] **Pen test**: launch'tan önce dış pentest (independent veya
+  bug-bounty programı)
+
+Hedef bütçe: ~$120/ay. Reklam dönüşümlerinde düşük tutar.
+
 ---
 
 ## Açık sorular (henüz karar verilmedi)
