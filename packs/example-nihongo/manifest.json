@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "com.github.ata.example-nihongo",
+  "name": "Japonca Başlangıç",
+  "version": "0.1.0",
+  "description": "Sıfırdan Japonca: hiragana ve temel selamlaşmalar.",
+  "language": {
+    "code": "ja",
+    "name": "Japanese",
+    "nativeName": "日本語",
+    "script": "Jpan",
+    "direction": "ltr"
+  },
+  "uiLanguage": "tr",
+  "level": "A1",
+  "author": {
+    "name": "Ata",
+    "url": "https://github.com/ata"
+  },
+  "license": "CC-BY-4.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ata/example-nihongo"
+  },
+  "tags": ["japanese", "hiragana", "beginner"],
+  "lessons": [
+    { "id": "001-hiragana-aiueo", "file": "lessons/001-hiragana-aiueo.json", "title": "Hiragana: あいうえお", "order": 1 },
+    { "id": "002-greetings",       "file": "lessons/002-greetings.json",       "title": "Selamlaşma",     "order": 2 }
+  ],
+  "minSdkVersion": "1.0.0"
+}

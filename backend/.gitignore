@@ -1,0 +1,17 @@
+# Binaries
+/bin/
+*.exe
+*.test
+*.out
+
+# Local data
+/data/
+*.db
+
+# Env files
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/

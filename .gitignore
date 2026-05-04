@@ -1,0 +1,29 @@
+# Build artifacts
+backend/bin/
+*.exe
+*.test
+*.out
+
+# Local data volumes (Postgres / MinIO)
+backend/data/
+
+# Env files
+.env
+.env.local
+**/.env
+**/.env.local
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+# macOS Xcode (ileride iOS klasörü için)
+**/xcuserdata/
+**/DerivedData/
+*.xcuserstate
+
+# Android (ileride Android klasörü için)
+**/.gradle/
+**/build/
+**/local.properties

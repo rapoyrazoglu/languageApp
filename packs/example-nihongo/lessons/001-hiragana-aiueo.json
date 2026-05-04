@@ -1,0 +1,46 @@
+{
+  "id": "001-hiragana-aiueo",
+  "title": "Hiragana: あいうえお",
+  "description": "Hiragana yazı sisteminin ilk beş sesli harfi.",
+  "estimatedMinutes": 10,
+  "prerequisites": [],
+  "blocks": [
+    {
+      "type": "explanation",
+      "text": "Japoncada üç yazı sistemi vardır: hiragana, katakana ve kanji. Bu derste hiragananın ilk beş harfini öğreneceğiz: あ (a), い (i), う (u), え (e), お (o)."
+    },
+    {
+      "type": "vocabulary",
+      "items": [
+        { "target": "あ", "translation": "a", "transliteration": "a", "audio": "media/audio/a.mp3" },
+        { "target": "い", "translation": "i", "transliteration": "i", "audio": "media/audio/i.mp3" },
+        { "target": "う", "translation": "u", "transliteration": "u", "audio": "media/audio/u.mp3" },
+        { "target": "え", "translation": "e", "transliteration": "e", "audio": "media/audio/e.mp3" },
+        { "target": "お", "translation": "o", "transliteration": "o", "audio": "media/audio/o.mp3" }
+      ]
+    },
+    {
+      "type": "exercise",
+      "exerciseType": "flashcard",
+      "prompt": "Bu harfin okunuşu nedir?",
+      "data": {
+        "cards": [
+          { "front": "あ", "back": "a" },
+          { "front": "い", "back": "i" },
+          { "front": "う", "back": "u" },
+          { "front": "え", "back": "e" },
+          { "front": "お", "back": "o" }
+        ]
+      }
+    },
+    {
+      "type": "exercise",
+      "exerciseType": "multipleChoice",
+      "prompt": "「い」 harfinin okunuşu hangisidir?",
+      "data": {
+        "choices": ["a", "i", "u", "e"],
+        "correctIndex": 1
+      }
+    }
+  ]
+}

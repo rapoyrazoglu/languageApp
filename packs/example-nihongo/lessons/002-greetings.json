@@ -1,0 +1,50 @@
+{
+  "id": "002-greetings",
+  "title": "Selamlaşma",
+  "description": "Günlük hayatta sık kullanılan Japonca selamlar.",
+  "estimatedMinutes": 8,
+  "prerequisites": ["001-hiragana-aiueo"],
+  "blocks": [
+    {
+      "type": "vocabulary",
+      "items": [
+        { "target": "こんにちは", "translation": "Merhaba", "transliteration": "konnichiwa", "audio": "media/audio/konnichiwa.mp3" },
+        { "target": "おはよう",   "translation": "Günaydın", "transliteration": "ohayou",     "audio": "media/audio/ohayou.mp3" },
+        { "target": "こんばんは", "translation": "İyi akşamlar", "transliteration": "konbanwa", "audio": "media/audio/konbanwa.mp3" },
+        { "target": "ありがとう", "translation": "Teşekkürler", "transliteration": "arigatou", "audio": "media/audio/arigatou.mp3" }
+      ]
+    },
+    {
+      "type": "exercise",
+      "exerciseType": "matching",
+      "prompt": "Japoncasıyla Türkçesini eşleştir.",
+      "data": {
+        "pairs": [
+          { "left": "こんにちは", "right": "Merhaba" },
+          { "left": "おはよう",   "right": "Günaydın" },
+          { "left": "ありがとう", "right": "Teşekkürler" }
+        ]
+      }
+    },
+    {
+      "type": "exercise",
+      "exerciseType": "typing",
+      "prompt": "\"Teşekkürler\" Japonca nasıl yazılır? (romaji ile)",
+      "data": {
+        "answer": "arigatou",
+        "acceptableAnswers": ["arigatou", "arigato"],
+        "caseSensitive": false
+      }
+    },
+    {
+      "type": "exercise",
+      "exerciseType": "listening",
+      "prompt": "Duyduğun kelimeyi seç.",
+      "data": {
+        "audio": "media/audio/konnichiwa.mp3",
+        "choices": ["こんにちは", "こんばんは", "おはよう"],
+        "correctIndex": 0
+      }
+    }
+  ]
+}

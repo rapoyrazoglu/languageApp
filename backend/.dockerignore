@@ -1,0 +1,8 @@
+bin/
+data/
+.env
+.env.local
+*.md
+.git/
+.idea/
+.vscode/

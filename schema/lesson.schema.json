@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://languageapp.example/schemas/lesson.schema.json",
+  "title": "Lesson",
+  "description": "A single lesson: a sequence of content blocks (explanations, vocab, exercises)",
+  "type": "object",
+  "required": ["id", "title", "blocks"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "estimatedMinutes": { "type": "integer", "minimum": 1, "maximum": 120 },
+    "prerequisites": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Lesson ids that should be completed first"
+    },
+    "blocks": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/block" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "block": {
+      "oneOf": [
+        { "$ref": "#/$defs/explanationBlock" },
+        { "$ref": "#/$defs/vocabularyBlock" },
+        { "$ref": "#/$defs/exerciseBlock" }
+      ]
+    },
+    "explanationBlock": {
+      "type": "object",
+      "required": ["type", "text"],
+      "properties": {
+        "type": { "const": "explanation" },
+        "text": { "type": "string", "minLength": 1 },
+        "media": { "$ref": "#/$defs/mediaRef" }
+      },
+      "additionalProperties": false
+    },
+    "vocabularyBlock": {
+      "type": "object",
+      "required": ["type", "items"],
+      "properties": {
+        "type": { "const": "vocabulary" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["target", "translation"],
+            "properties": {
+              "target": { "type": "string", "description": "Word/phrase in the language being learned" },
+              "translation": { "type": "string" },
+              "transliteration": { "type": "string", "description": "e.g. romaji for Japanese" },
+              "audio": { "type": "string", "description": "Path to audio file relative to pack root" },
+              "image": { "type": "string" },
+              "notes": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "exerciseBlock": {
+      "type": "object",
+      "required": ["type", "exerciseType"],
+      "properties": {
+        "type": { "const": "exercise" },
+        "exerciseType": {
+          "type": "string",
+          "enum": ["flashcard", "multipleChoice", "typing", "listening", "matching", "fillInBlank"]
+        },
+        "prompt": { "type": "string" },
+        "data": {
+          "type": "object",
+          "description": "Exercise-type-specific payload; SDK validates against per-type sub-schema"
+        }
+      },
+      "additionalProperties": false
+    },
+    "mediaRef": {
+      "type": "object",
+      "properties": {
+        "audio": { "type": "string" },
+        "image": { "type": "string" },
+        "video": { "type": "string" }
+      }
+    }
+  }
+}
