@@ -100,30 +100,37 @@ func (d *DB) PackOwner(ctx context.Context, packID string) (string, error) {
 	return *owner, nil
 }
 
+// UpsertResult tells callers whether the pack id existed before this call.
+// IsNewPack is true when the upsert created a brand-new packs row.
+type UpsertResult struct {
+	IsNewPack bool
+}
+
 // UpsertPackAndVersion upserts the pack row and inserts a new version row.
 // Returns ErrVersionExists if (pack_id, version) already exists.
 // Returns ErrNotPackOwner if the pack already exists with a different owner.
-func (d *DB) UpsertPackAndVersion(ctx context.Context, in UpsertPackInput) error {
+func (d *DB) UpsertPackAndVersion(ctx context.Context, in UpsertPackInput) (UpsertResult, error) {
 	m := in.Manifest
 
 	if in.UserID == "" {
-		return errors.New("UserID is required")
+		return UpsertResult{}, errors.New("UserID is required")
 	}
 
 	tx, err := d.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
-		return err
+		return UpsertResult{}, err
 	}
 	defer tx.Rollback(ctx) //nolint:errcheck
 
 	// Lock the pack row (if any) so a concurrent uploader can't race ownership.
 	var existingOwner *string
 	err = tx.QueryRow(ctx, `SELECT owner_user_id::text FROM packs WHERE id = $1 FOR UPDATE`, m.ID).Scan(&existingOwner)
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return fmt.Errorf("lock pack: %w", err)
+	isNew := errors.Is(err, pgx.ErrNoRows)
+	if err != nil && !isNew {
+		return UpsertResult{}, fmt.Errorf("lock pack: %w", err)
 	}
 	if existingOwner != nil && *existingOwner != in.UserID {
-		return ErrNotPackOwner
+		return UpsertResult{}, ErrNotPackOwner
 	}
 
 	repoURL := ""
@@ -157,7 +164,7 @@ func (d *DB) UpsertPackAndVersion(ctx context.Context, in UpsertPackInput) error
 		m.Author.Name, m.Author.URL, m.License, m.Homepage, repoURL, m.Tags, m.Version,
 		in.UserID)
 	if err != nil {
-		return fmt.Errorf("upsert pack: %w", err)
+		return UpsertResult{}, fmt.Errorf("upsert pack: %w", err)
 	}
 
 	_, err = tx.Exec(ctx, `
@@ -169,12 +176,15 @@ func (d *DB) UpsertPackAndVersion(ctx context.Context, in UpsertPackInput) error
 		in.Source, in.SourceURL, in.ManifestRaw, m.MinSDKVersion, in.UserID)
 	if err != nil {
 		if isUniqueViolation(err) {
-			return ErrVersionExists
+			return UpsertResult{}, ErrVersionExists
 		}
-		return fmt.Errorf("insert version: %w", err)
+		return UpsertResult{}, fmt.Errorf("insert version: %w", err)
 	}
 
-	return tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return UpsertResult{}, err
+	}
+	return UpsertResult{IsNewPack: isNew}, nil
 }
 
 func isUniqueViolation(err error) bool {

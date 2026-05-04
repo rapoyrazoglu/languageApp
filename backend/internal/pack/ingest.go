@@ -12,7 +12,7 @@ import (
 // Sink is the persistence layer the ingester writes to.
 // Defined here to avoid an import cycle with `db`.
 type Sink interface {
-	UpsertPackAndVersion(ctx context.Context, in SinkInput) error
+	UpsertPackAndVersion(ctx context.Context, in SinkInput) (SinkResult, error)
 }
 
 type SinkInput struct {
@@ -24,6 +24,12 @@ type SinkInput struct {
 	Source      string
 	SourceURL   string
 	UserID      string
+}
+
+// SinkResult tells the ingester whether this was the very first version
+// for a pack id (publish) or a subsequent one (update).
+type SinkResult struct {
+	IsNewPack bool
 }
 
 var (
@@ -41,6 +47,7 @@ type Ingester struct {
 type IngestResult struct {
 	Validation *ValidationResult `json:"validation"`
 	StorageKey string            `json:"storageKey,omitempty"`
+	IsNewPack  bool              `json:"-"` // first version for this id?
 }
 
 func (in *Ingester) Ingest(ctx context.Context, zipBytes []byte, source, sourceURL, userID string) (*IngestResult, error) {
@@ -60,7 +67,7 @@ func (in *Ingester) Ingest(ctx context.Context, zipBytes []byte, source, sourceU
 
 	manifestRaw, _ := json.Marshal(m)
 
-	err := in.Sink.UpsertPackAndVersion(ctx, SinkInput{
+	sinkRes, err := in.Sink.UpsertPackAndVersion(ctx, SinkInput{
 		Manifest:    m,
 		ManifestRaw: manifestRaw,
 		SHA256:      res.SHA256,
@@ -73,5 +80,6 @@ func (in *Ingester) Ingest(ctx context.Context, zipBytes []byte, source, sourceU
 	if err != nil {
 		return out, err
 	}
+	out.IsNewPack = sinkRes.IsNewPack
 	return out, nil
 }

@@ -43,7 +43,7 @@ Tarihler **niyet beyanı**dır, taahhüt değil.
 - [x] Pack ownership: bir `id`'i ilk publish eden user sahip olur, başkası yazamaz
 - [x] Presigned download URL'leri
 
-## Phase 2 — Backend sertleştirme (DEVAM EDİYOR)
+## Phase 2 — Backend sertleştirme (TAMAMLANDI)
 
 > Hedef: production'a koyabileceğimiz hale getirmek.
 
@@ -59,10 +59,15 @@ Tarihler **niyet beyanı**dır, taahhüt değil.
 - [x] **OpenAPI 3.1 spec**: `docs/openapi.yaml`
 - [x] **CI**: GitHub Actions — `go vet` + `golangci-lint` + `go test -race`
 - [x] **Container image**: GHCR'a otomatik push (main + semver tag)
-- [ ] **Audit log**: kim ne zaman pack publish/update etti
-- [ ] **Webhook desteği**: GitHub'da yeni release çıkınca otomatik ingest
-- [ ] **Migration runner image** (prod'da goose'u container içinde çalıştır)
-- [ ] **Integration test**: Postgres + MinIO ile uçtan uca ingest
+- [x] **Audit log**: `pack_audit_log` tablosu, her ingest'te publish/update
+  satırı; `GET /v1/packs/{id}/audit` (owner-only)
+- [x] **Webhook desteği**: `POST /v1/webhooks/github` (HMAC-SHA256 doğrulama),
+  `POST/GET/DELETE /v1/webhooks/subscriptions` ile repo→user mapping
+- [x] **Migration runner image**: `backend/Dockerfile.migrate` (goose +
+  migrations); GHCR'a `languageapp-migrate` olarak basılır
+- [x] **Integration test**: `make test-integration` — gerçek Postgres + MinIO
+  ile uçtan uca register/login → upload → list → search → download → audit →
+  duplicate-version → webhook subscriptions
 - [ ] **Backend deploy** (Fly.io / Railway / VPS — kararlaştırılacak)
 
 ## Phase 3 — iOS SDK + Demo App
@@ -125,7 +130,7 @@ Tarihler **niyet beyanı**dır, taahhüt değil.
 | Sürüm  | Kapsar                                              |
 |:------:|-----------------------------------------------------|
 | 0.1.0  | Phase 0 + Phase 1 (mevcut HEAD)                     |
-| 0.2.0  | Phase 2'nin testler + CI + arama kısmı              |
+| 0.2.0  | Phase 2 (test + CI + audit + webhook + integration) |
 | 0.3.0  | iOS SDK alpha (Phase 3'ün çekirdeği)                |
 | 0.4.0  | Android SDK alpha (Phase 4'ün çekirdeği)            |
 | 0.5.0  | Web pack tarayıcısı + CLI                           |

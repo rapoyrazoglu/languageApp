@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1
+#
+# Migration runner. Bakes goose + the migrations directory into a tiny image so
+# CI / prod can run `goose up` without needing the source tree:
+#
+#   docker run --rm -e DATABASE_URL=... ghcr.io/ata/languageapp-migrate:latest
+#
+# Override the default to roll back, check status, etc.:
+#
+#   docker run --rm -e DATABASE_URL=... ghcr.io/ata/languageapp-migrate:latest down
+#   docker run --rm -e DATABASE_URL=... ghcr.io/ata/languageapp-migrate:latest status
+
+FROM golang:1.25-alpine AS build
+RUN go install github.com/pressly/goose/v3/cmd/goose@v3.22.1
+
+FROM alpine:3.20
+RUN apk add --no-cache ca-certificates
+COPY --from=build /go/bin/goose /usr/local/bin/goose
+COPY migrations /migrations
+
+# Wrap goose so callers only need to pass the verb (default: up).
+COPY <<'EOF' /usr/local/bin/run-migrations
+#!/bin/sh
+set -eu
+if [ -z "${DATABASE_URL:-}" ]; then
+  echo "DATABASE_URL is required" >&2
+  exit 1
+fi
+verb="${1:-up}"
+shift 2>/dev/null || true
+exec goose -dir /migrations postgres "$DATABASE_URL" "$verb" "$@"
+EOF
+RUN chmod +x /usr/local/bin/run-migrations
+
+ENTRYPOINT ["/usr/local/bin/run-migrations"]
+CMD ["up"]

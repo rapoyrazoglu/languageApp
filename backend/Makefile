@@ -1,4 +1,4 @@
-.PHONY: up down logs psql migrate-up migrate-down run tidy build test
+.PHONY: up down logs psql migrate-up migrate-down run tidy build test test-integration
 
 up:
 	docker compose up -d
@@ -29,3 +29,8 @@ tidy:
 
 test:
 	go test ./...
+
+# Integration tests need a running Postgres + MinIO (see docker-compose.yml).
+# Schemas are wiped on each run, so this is destructive against the configured DB.
+test-integration:
+	go test -tags=integration -count=1 -timeout=120s ./integration/...

@@ -89,14 +89,15 @@ func run(logger *slog.Logger) error {
 	)
 
 	srv := httpapi.NewServer(httpapi.Deps{
-		Logger:      logger,
-		DB:          database,
-		Storage:     store,
-		Ingester:    ingester,
-		GitHub:      gh,
-		Tokens:      tokens,
-		MaxPackSize: cfg.MaxPackSizeBytes,
-		Limiter:     limiter,
+		Logger:        logger,
+		DB:            database,
+		Storage:       store,
+		Ingester:      ingester,
+		GitHub:        gh,
+		Tokens:        tokens,
+		MaxPackSize:   cfg.MaxPackSizeBytes,
+		Limiter:       limiter,
+		WebhookSecret: cfg.GitHubWebhookSecret,
 	})
 
 	httpServer := &http.Server{

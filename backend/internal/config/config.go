@@ -18,7 +18,8 @@ type Config struct {
 	S3SecretKey    string
 	S3UsePathStyle bool
 
-	GitHubToken string
+	GitHubToken         string
+	GitHubWebhookSecret string
 
 	JWTSecret   string
 	JWTTTLHours int
@@ -31,16 +32,17 @@ type Config struct {
 
 func Load() (*Config, error) {
 	c := &Config{
-		HTTPAddr:       getEnv("HTTP_ADDR", ":8080"),
-		DatabaseURL:    os.Getenv("DATABASE_URL"),
-		S3Endpoint:     os.Getenv("S3_ENDPOINT"),
-		S3Region:       getEnv("S3_REGION", "us-east-1"),
-		S3Bucket:       getEnv("S3_BUCKET", "packs"),
-		S3AccessKey:    os.Getenv("S3_ACCESS_KEY"),
-		S3SecretKey:    os.Getenv("S3_SECRET_KEY"),
-		S3UsePathStyle: getEnvBool("S3_USE_PATH_STYLE", true),
-		GitHubToken:    os.Getenv("GITHUB_TOKEN"),
-		JWTSecret:      os.Getenv("JWT_SECRET"),
+		HTTPAddr:            getEnv("HTTP_ADDR", ":8080"),
+		DatabaseURL:         os.Getenv("DATABASE_URL"),
+		S3Endpoint:          os.Getenv("S3_ENDPOINT"),
+		S3Region:            getEnv("S3_REGION", "us-east-1"),
+		S3Bucket:            getEnv("S3_BUCKET", "packs"),
+		S3AccessKey:         os.Getenv("S3_ACCESS_KEY"),
+		S3SecretKey:         os.Getenv("S3_SECRET_KEY"),
+		S3UsePathStyle:      getEnvBool("S3_USE_PATH_STYLE", true),
+		GitHubToken:         os.Getenv("GITHUB_TOKEN"),
+		GitHubWebhookSecret: os.Getenv("GITHUB_WEBHOOK_SECRET"),
+		JWTSecret:           os.Getenv("JWT_SECRET"),
 	}
 
 	maxSize, err := strconv.ParseInt(getEnv("MAX_PACK_SIZE_BYTES", "524288000"), 10, 64)

@@ -17,39 +17,42 @@ import (
 )
 
 type Server struct {
-	logger      *slog.Logger
-	mux         *http.ServeMux
-	db          *db.DB
-	storage     *storage.Client
-	ingester    *pack.Ingester
-	github      *github.Client
-	tokens      *auth.Issuer
-	maxPackSize int64
-	limiter     *RateLimiter
+	logger        *slog.Logger
+	mux           *http.ServeMux
+	db            *db.DB
+	storage       *storage.Client
+	ingester      *pack.Ingester
+	github        *github.Client
+	tokens        *auth.Issuer
+	maxPackSize   int64
+	limiter       *RateLimiter
+	webhookSecret string
 }
 
 type Deps struct {
-	Logger      *slog.Logger
-	DB          *db.DB
-	Storage     *storage.Client
-	Ingester    *pack.Ingester
-	GitHub      *github.Client
-	Tokens      *auth.Issuer
-	MaxPackSize int64
-	Limiter     *RateLimiter
+	Logger        *slog.Logger
+	DB            *db.DB
+	Storage       *storage.Client
+	Ingester      *pack.Ingester
+	GitHub        *github.Client
+	Tokens        *auth.Issuer
+	MaxPackSize   int64
+	Limiter       *RateLimiter
+	WebhookSecret string
 }
 
 func NewServer(d Deps) *Server {
 	s := &Server{
-		logger:      d.Logger,
-		mux:         http.NewServeMux(),
-		db:          d.DB,
-		storage:     d.Storage,
-		ingester:    d.Ingester,
-		github:      d.GitHub,
-		tokens:      d.Tokens,
-		maxPackSize: d.MaxPackSize,
-		limiter:     d.Limiter,
+		logger:        d.Logger,
+		mux:           http.NewServeMux(),
+		db:            d.DB,
+		storage:       d.Storage,
+		ingester:      d.Ingester,
+		github:        d.GitHub,
+		tokens:        d.Tokens,
+		maxPackSize:   d.MaxPackSize,
+		limiter:       d.Limiter,
+		webhookSecret: d.WebhookSecret,
 	}
 	s.routes()
 	return s
@@ -71,6 +74,17 @@ func (s *Server) routes() {
 	// Pack writes (auth required)
 	s.mux.HandleFunc("POST /v1/packs/upload", s.requireAuth(s.handleUpload))
 	s.mux.HandleFunc("POST /v1/packs/import-github", s.requireAuth(s.handleImportGitHub))
+
+	// Audit log (auth required, owner-only)
+	s.mux.HandleFunc("GET /v1/packs/{id}/audit", s.requireAuth(s.handleListAudit))
+
+	// Webhook subscriptions (auth required)
+	s.mux.HandleFunc("POST /v1/webhooks/subscriptions", s.requireAuth(s.handleCreateSubscription))
+	s.mux.HandleFunc("GET /v1/webhooks/subscriptions", s.requireAuth(s.handleListSubscriptions))
+	s.mux.HandleFunc("DELETE /v1/webhooks/subscriptions/{owner}/{repo}", s.requireAuth(s.handleDeleteSubscription))
+
+	// GitHub webhook receiver (signature-verified, no JWT)
+	s.mux.HandleFunc("POST /v1/webhooks/github", s.handleGitHubWebhook)
 }
 
 func (s *Server) Handler() http.Handler {
@@ -230,6 +244,26 @@ func (s *Server) ingestAndRespond(w http.ResponseWriter, r *http.Request, data [
 			"pack failed validation", out.Validation)
 		return
 	}
+
+	action := db.AuditActionUpdate
+	if out.IsNewPack {
+		action = db.AuditActionPublish
+	}
+	if err := s.db.InsertAudit(r.Context(), db.AuditInput{
+		PackID:    out.Validation.Manifest.ID,
+		Version:   out.Validation.Manifest.Version,
+		UserID:    userID,
+		Action:    action,
+		Source:    source,
+		SourceURL: sourceURL,
+		IPAddress: clientIP(r),
+		UserAgent: r.UserAgent(),
+	}); err != nil {
+		// Audit must not block the response; log and move on.
+		s.logger.Warn("audit insert failed", "err", err,
+			"packId", out.Validation.Manifest.ID, "version", out.Validation.Manifest.Version)
+	}
+
 	writeJSON(w, http.StatusCreated, map[string]any{
 		"packId":     out.Validation.Manifest.ID,
 		"version":    out.Validation.Manifest.Version,

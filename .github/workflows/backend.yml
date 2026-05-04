@@ -44,3 +44,55 @@ jobs:
 
       - name: build
         run: go build -o /tmp/api ./cmd/api
+
+  integration:
+    name: integration (postgres + minio)
+    runs-on: ubuntu-latest
+    needs: lint-test
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: langapp
+          POSTGRES_PASSWORD: langapp_dev
+          POSTGRES_DB: langapp
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U langapp"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      minio:
+        image: bitnami/minio:latest
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+          MINIO_DEFAULT_BUCKETS: packs
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -fsS http://localhost:9000/minio/health/ready"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache: true
+          cache-dependency-path: backend/go.sum
+
+      - name: integration tests
+        env:
+          INTEGRATION_DATABASE_URL: postgres://langapp:langapp_dev@localhost:5432/langapp?sslmode=disable
+          INTEGRATION_S3_ENDPOINT: http://localhost:9000
+          INTEGRATION_S3_ACCESS_KEY: minioadmin
+          INTEGRATION_S3_SECRET_KEY: minioadmin
+          INTEGRATION_S3_BUCKET: packs
+        run: make test-integration

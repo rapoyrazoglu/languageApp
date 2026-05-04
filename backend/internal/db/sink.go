@@ -11,8 +11,8 @@ import (
 // doesn't depend on the db package directly.
 type Adapter struct{ DB *DB }
 
-func (a *Adapter) UpsertPackAndVersion(ctx context.Context, in pack.SinkInput) error {
-	err := a.DB.UpsertPackAndVersion(ctx, UpsertPackInput{
+func (a *Adapter) UpsertPackAndVersion(ctx context.Context, in pack.SinkInput) (pack.SinkResult, error) {
+	res, err := a.DB.UpsertPackAndVersion(ctx, UpsertPackInput{
 		Manifest:    in.Manifest,
 		ManifestRaw: in.ManifestRaw,
 		SHA256:      in.SHA256,
@@ -24,9 +24,12 @@ func (a *Adapter) UpsertPackAndVersion(ctx context.Context, in pack.SinkInput) e
 	})
 	switch {
 	case errors.Is(err, ErrVersionExists):
-		return pack.ErrVersionExists
+		return pack.SinkResult{}, pack.ErrVersionExists
 	case errors.Is(err, ErrNotPackOwner):
-		return pack.ErrNotPackOwner
+		return pack.SinkResult{}, pack.ErrNotPackOwner
 	}
-	return err
+	if err != nil {
+		return pack.SinkResult{}, err
+	}
+	return pack.SinkResult{IsNewPack: res.IsNewPack}, nil
 }
