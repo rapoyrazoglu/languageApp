@@ -1,0 +1,23 @@
+name: release-please
+
+# After every push to main, release-please scans new commits (Conventional
+# Commits) and either updates an existing "Release PR" or opens a new one.
+# When you merge that PR, it creates the git tag and GitHub release; the
+# tag in turn fires release.yml to build and push the Docker images.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

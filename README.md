@@ -135,6 +135,30 @@ hazırla, ZIP'le, GitHub release'e yükle veya `/v1/packs/upload`'a POST et.
 Detaylar: [docs/PACK_FORMAT.md](docs/PACK_FORMAT.md). Çalışan örnek:
 [`packs/example-nihongo/`](packs/example-nihongo/).
 
+## Katkı / commit mesajı kuralı
+
+Sürümler [release-please](https://github.com/googleapis/release-please) ile
+otomatik üretilir. Commit mesajı **Conventional Commits** formatında olmalı:
+
+| Prefix | Anlam | Versiyon etkisi |
+|---|---|---|
+| `feat:` | Yeni özellik | minor (`0.x.0`) |
+| `fix:` | Bug fix | patch (`0.0.x`) |
+| `feat!:` veya body'de `BREAKING CHANGE:` | Geriye dönük uyumsuz değişiklik | major (`x.0.0`) |
+| `docs:` | Yalnız dokümantasyon | release etmez ama CHANGELOG'a girer |
+| `chore:`, `ci:`, `refactor:`, `test:` | İç işler | release etmez |
+
+Örnek:
+```
+feat(ios): add LessonRunner block renderer
+fix(backend): clamp pagination limit to [1,100]
+feat!: rename pack manifest field `level` to `cefrLevel`
+```
+
+Akış: main'e push → release-please bot bir **Release PR** açar/günceller →
+hazır olunca o PR'ı merge edersin → tag + GitHub release + Docker image
+tagleri otomatik oluşur.
+
 ## Lisans
 
 Henüz seçilmedi (kod için MIT veya Apache-2.0 düşünülüyor). Pack içeriklerinin
