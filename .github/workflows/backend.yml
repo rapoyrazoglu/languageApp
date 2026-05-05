@@ -63,19 +63,6 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-      minio:
-        image: bitnami/minio:latest
-        env:
-          MINIO_ROOT_USER: minioadmin
-          MINIO_ROOT_PASSWORD: minioadmin
-          MINIO_DEFAULT_BUCKETS: packs
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd "curl -fsS http://localhost:9000/minio/health/ready"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
     defaults:
       run:
         working-directory: backend
@@ -87,6 +74,25 @@ jobs:
           go-version: "1.25"
           cache: true
           cache-dependency-path: backend/go.sum
+
+      - name: start minio
+        # bitnami/minio is no longer published with `:latest` (Aug 2025 retag);
+        # spin minio up manually so we can pin the official image and seed the bucket.
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin \
+            minio/minio:latest server /data
+          for i in {1..30}; do
+            if curl -fsS http://localhost:9000/minio/health/ready >/dev/null; then
+              echo "minio ready"; break
+            fi
+            sleep 2
+          done
+          docker run --rm --network host --entrypoint sh minio/mc:latest -c '
+            mc alias set local http://localhost:9000 minioadmin minioadmin &&
+            mc mb -p local/packs
+          '
 
       - name: integration tests
         env:
