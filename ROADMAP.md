@@ -139,6 +139,31 @@ Tarihler **niyet beyanı**dır, taahhüt değil.
 - [ ] Çeviri pipeline'ı (yazarın bir pack'i başka UI dillerine çevirebilmesi)
 - [ ] **Featured curation** mekanizması: biz manuel "Paktly seçimi" işaretleriz,
   search'te öne çıkar
+- [ ] **Creator incentive program**:
+  - İlk 50 creator için $20/ay ücretsiz AI quota + "Founding Creator" badge
+  - Kalite eşiği aşan pack'ler featured slot + push bildirimi
+  - Discord/forum + verified creator badge + "Pack of the week"
+  - Pack yazma yarışmaları (örn. "yeni dil topluluğa ekle" challenge'ı)
+
+## Phase 5b — Paktly Originals (paralel olarak Phase 3-4 ile)
+
+> İlk 5 referans pack'i biz yazıyoruz. "Featured by Paktly" rozetleriyle
+> showcase görevi görür, topluluk creator'larına kalite barı koyar, ileride
+> licensable asset olur (3rd party platformlara satış / partnership).
+
+- [ ] **Japonca N5** — Hiragana + Katakana + temel kelime (50+ ders, 500+
+  kelime, native audio)
+- [ ] **İngilizce A1-A2** (TR konuşan için) — günlük konuşma, dilbilgisi
+- [ ] **Korece TOPIK I** — Hangul + ortalık konuşma
+- [ ] **İspanyolca A1**
+- [ ] **Almanca A1**
+
+Her biri:
+- Native speaker audio (script + studio kayıt)
+- Bunpo-grade dilbilgisi açıklamaları
+- Örnek cümleler her vocab item için
+- AI capability declarations (questionGeneration + explanation)
+- CC-BY-SA 4.0 lisansı (kullanıcı dağıtabilir, atıf zorunlu)
 
 ## Phase 6 — Öğrenme döngüsü
 
@@ -185,32 +210,74 @@ Hedef bütçe: ~$120/ay. Reklam dönüşümlerinde düşük tutar.
 > kendi self-host eden hiç ödemez. Sadece Paktly hosted'in convenience
 > özellikleri ücretli.
 
-- [ ] **AI explain & generate**: Gemini proxy (`/v1/ai/...`), per-user token
-  quota, audit log entegrasyonu. Kelime/yapı sorulduğunda LLM'le açıklama
-  üretir, AI alıştırma türetir
+- [ ] **AI proxy** (`/v1/ai/...`): multi-provider (Gemini + DeepSeek + OpenAI +
+  Anthropic + **Ollama** for self-hosters). Provider-agnostic interface,
+  config-driven default.
+  - Gemini Flash: default, KVKK/GDPR güvenli
+  - DeepSeek V3: ucuz alternatif (~50% maliyet)
+  - Ollama: self-host eden kullanıcı kendi yerel modeline yönlendirir
+- [ ] **Per-user token quota**: subscription tier'a göre, audit log'a yazılır
+- [ ] **Per-pack soft cap** ($5/gün/pack default): abuse koruması, aşılınca
+  pack AI feature'ları 24 saat dondurulur, creator'a mail
+- [ ] **Pack AI capability declaration**: manifest'te `aiCapabilities` (Phase
+  2.5'te schema'ya eklendi), backend'de gating
+- [ ] **Creator dashboard**: analytics-only başlangıçta (kullanım, top prompt'lar,
+  hata oranı). Billing yok — Paktly subscription'tan absorb eder.
+- [ ] **iOS Siri TTS fallback**: vocab'da audio yoksa AVSpeechSynthesizer kullanır
 - [ ] **Cross-device sync**: ilerleme + indirilen packlist + favoriler
-  cihazlar arası senkronize. Encrypted at-rest, end-to-end değil (gizlilik
-  hassas içerik yok ama yine de minimize)
+  E2E encrypted blob olarak Postgres'te
 - [ ] **Stripe entegrasyonu**: aylık abonelik, free trial, iptal akışı
 - [ ] **Free tier limitleri**: anonim N istek/dk + auth user M istek/saat
-  zaten var. AI için ayrı kota: free user 0 AI, paid user X token/ay
+  (rate limiting zaten var). AI için ayrı kota: free=0 token, paid=X/ay
 - [ ] **Account management UI**: web sayfası — abonelik durumu, ödeme yöntemi,
   kullanım, iptal
 - [ ] **Pricing page**: paktly.dev/pricing — net plan karşılaştırması
 
 Hedef: 5-10 paid kullanıcı break-even, 50+ kullanıcı kâr eder.
 
+## Phase 9 — Creator billing + revenue share (uzun vade)
+
+> Phase 8'de creator'lar AI'i ücretsiz alıyor (Paktly absorb ediyor). Bu
+> aşama creator'lara billing + gelir kazanma seçenekleri ekler.
+
+- [ ] **Creator Stripe Connect onboarding** — KYC + payout
+- [ ] **Pre-fund AI**: creator pack'i için AI quota satın alır, kendi pack'i
+  daha çok AI desteklesin diye
+- [ ] **Tip jar / Patreon entegrasyonu** — pack sayfasında destek butonu
+- [ ] **Subscription revenue share** (Spotify modeli): Paktly+ gelirinin
+  belli yüzdesi pack kullanım metriklerine göre creator'lara paylaşılır
+- [ ] **Epic Games modeli**: creator gelir eşiğini geçtikten sonra Paktly
+  küçük yüzde kesinti yapar (ör. ilk $1000 ücretsiz, sonrası %12)
+- [ ] **Tax / 1099 / KVKK uygunluk**: legal danışmanlık gerekir bu noktada
+
 ---
 
 ## Açık sorular (henüz karar verilmedi)
 
 - Pack'lerde **video** ne zaman? Format destekliyor ama validator henüz değil.
-- **AI provider strategy**: tek vendor (Gemini) mı, multi-provider fallback mı
-  (Anthropic/OpenAI/Gemini)? Şimdilik Gemini.
 - **Translation/UI lokalizasyon**: pack içeriği dışında app UI'ı kaç dile?
   Şimdilik TR + EN.
 - **Curation komitesi**: "Paktly seçimi" featured paketleri kim onaylıyor —
   tek başına ben mi, topluluk vote mu?
+- **AI default provider**: Gemini mi DeepSeek mi başlangıçta? (multi-provider
+  mimari yine de yazılır, değiştirmek 1 config satırı)
+
+## Stratejik seçenekler (uzun vade, hedef değil)
+
+Topluluk + pack katalogu + kullanıcı tabanı belli bir noktaya geldiğinde
+seçenekler:
+
+1. **Bağımsız büyüme**: subscription revenue ile sürdürülebilir, kendi başımıza
+2. **Acquisition target**: Duolingo / Babbel / Mondly / Memrise bizi alır
+   (pack format spec + registry tech + Paktly Originals + community)
+3. **Asset licensing**: Paktly Originals'i platform-agnostic content olarak
+   3rd party platformlara satarız / lisanslarız
+4. **Open source halo**: Wikipedia-vakfı modeli, donation-driven; subscription
+   minimum operasyonel maliyet için kalır
+5. **Edu kurumlarına SaaS**: okullar / kurslar kendi Paktly instance'larını
+   self-host edip kendi içeriklerini barındırır (paid support contract)
+
+Bunlar **opsiyon**, hedef değil. Önce kullanıcılar için iyi ürün çıkar.
 
 ## Karara bağlananlar
 
@@ -238,4 +305,5 @@ Hedef: 5-10 paid kullanıcı break-even, 50+ kullanıcı kâr eder.
 | 0.5.0  | Web pack tarayıcısı + CLI + self-hosting docs       |
 | 0.6.0  | Spaced repetition + topluluk (Phase 6)              |
 | 1.0.0  | İki SDK + 5+ Paktly Originals + SRS                 |
-| 1.1.0  | Paid cloud (AI + sync, Phase 8)                     |
+| 1.1.0  | Paid cloud (AI multi-provider + sync, Phase 8)      |
+| 1.2.0  | Creator billing + revenue share (Phase 9)           |
