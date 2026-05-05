@@ -76,17 +76,17 @@ Tarihler **niyet beyanı**dır, taahhüt değil.
 > Phase 3 öncesi pedagojik elementleri zorunlu / yarı-zorunlu kıl. iOS SDK'yı
 > direkt v1.1'e karşı yazalım, sonradan refactor olmasın.
 
-- [ ] **Vocabulary genişletme**: word, reading, meaning + `audio` (zorunlu),
-  `examples[]` (opsiyonel ama önerilen), `ipa` (opsiyonel)
-- [ ] **Example sentence bloğu**: yeni block tipi `example` — text + translation
-  + audio + grammar referansı
-- [ ] **Level path**: manifest'te `previousPack` + `nextPack` (opsiyonel),
-  curated paketler için zincir
+- [x] **Vocabulary genişletme**: `examples[]` (opsiyonel) + `ipa` (opsiyonel)
+  schema'da, Manifest.swift modeli ve backend validator'ı destekliyor
+- [x] **Level path**: manifest'te `previousPack` + `nextPack`, curated paketler
+  için zincir
+- [x] Schema bump 1.0.0 → 1.1.0 (geriye uyumlu, eski paketler hâlâ çalışır)
+- [x] Validator update + test — backend `vocabLessonWithExamples` testi v1.1
+  vocabulary alanlarını doğruluyor
+- [x] Örnek pack'i (`example-nihongo`) v1.1'e migrate edildi + 9 audio mp3
 - [ ] **Audio kuralı**: vocabulary item'ı için audio yoksa validator warning
-  (zorunluluk değil ama featured olabilmesi için şart — Phase 5)
-- [ ] Schema bump 1.0.0 → 1.1.0 (geriye uyumlu, eski paketler hâlâ çalışır)
-- [ ] Validator update + test
-- [ ] Örnek pack'i (`example-nihongo`) v1.1'e migrate et + audio ekle
+  (Phase 5 featured-gating prerequisite — backend'de henüz "warning" kanalı yok,
+  sadece pass/fail var; Phase 5'te eklenecek)
 
 ## Phase 3 — iOS SDK + Demo App
 
@@ -210,12 +210,15 @@ Hedef bütçe: ~$120/ay. Reklam dönüşümlerinde düşük tutar.
 > kendi self-host eden hiç ödemez. Sadece Paktly hosted'in convenience
 > özellikleri ücretli.
 
-- [ ] **AI proxy** (`/v1/ai/...`): multi-provider (Gemini + DeepSeek + OpenAI +
+- [ ] **AI proxy** (`/v1/ai/...`): multi-provider (DeepSeek + Gemini + OpenAI +
   Anthropic + **Ollama** for self-hosters). Provider-agnostic interface,
-  config-driven default.
-  - Gemini Flash: default, KVKK/GDPR güvenli
-  - DeepSeek V3: ucuz alternatif (~50% maliyet)
+  per-pack provider selection.
+  - DeepSeek V3: default (~50% daha ucuz)
+  - Gemini Flash: alternatif (KVKK/GDPR önemliyse opt-in)
   - Ollama: self-host eden kullanıcı kendi yerel modeline yönlendirir
+  - Creator pack başına provider seçer; **Paktly seçilen sağlayıcının API
+    key'ini verir** (creator kendi sağlayıcı hesabını yönetmez), tüm AI
+    çağrıları Paktly merkezi hesabından geçer, fatura Paktly tarafında biter
 - [ ] **Per-user token quota**: subscription tier'a göre, audit log'a yazılır
 - [ ] **Per-pack soft cap** ($5/gün/pack default): abuse koruması, aşılınca
   pack AI feature'ları 24 saat dondurulur, creator'a mail
@@ -254,13 +257,8 @@ Hedef: 5-10 paid kullanıcı break-even, 50+ kullanıcı kâr eder.
 
 ## Açık sorular (henüz karar verilmedi)
 
-- Pack'lerde **video** ne zaman? Format destekliyor ama validator henüz değil.
-- **Translation/UI lokalizasyon**: pack içeriği dışında app UI'ı kaç dile?
-  Şimdilik TR + EN.
 - **Curation komitesi**: "Paktly seçimi" featured paketleri kim onaylıyor —
   tek başına ben mi, topluluk vote mu?
-- **AI default provider**: Gemini mi DeepSeek mi başlangıçta? (multi-provider
-  mimari yine de yazılır, değiştirmek 1 config satırı)
 
 ## Stratejik seçenekler (uzun vade, hedef değil)
 
@@ -292,6 +290,16 @@ Bunlar **opsiyon**, hedef değil. Önce kullanıcılar için iyi ürün çıkar.
   isteyen kendi instance'ını çalıştırır.
 - **Ödemeli pack**: hayır. Sadece ücretsiz / CC-lisanslı pack'ler. Yazarlar
   ister tip jar / GitHub Sponsors koyabilir, biz aracılık yapmıyoruz.
+- **App UI dilleri** (launch minimum): TR, EN, DE, zh-Hans (anakara Çince), ES.
+  Daha fazlası community demand'a göre. Pack içerik lokalizasyonu (manifest
+  `uiLanguage`) ayrı bir konu, per-pack.
+- **AI default provider**: **DeepSeek** (~50% daha ucuz). Gemini alternatif.
+  Creator pack başına seçer; Paktly seçilen sağlayıcının API key'ini verir,
+  fatura merkezi Paktly hesabından geçer.
+- **Pack'lerde video**: opsiyonel ve asla zorunlu olmayacak. Format
+  destekleyebilir (`media/video/`) ama validator warning yok, featured
+  curation video varlığına bakmaz, video'suz pack tam birinci sınıf. Phase
+  6'dan önce roadmap dışı.
 
 ## Sürüm hedefleri
 

@@ -25,8 +25,8 @@ backend/                Go API. cmd/api ana binary, cmd/validate-pack yazar CLI.
   Dockerfile            backend image
   Dockerfile.migrate    migration runner image (goose + migrations baked in)
 ios/                    Swift Package "PaktlyKit". iOS 16+, macOS 13+.
-  Sources/PaktlyKit/    Models/, (yakında) Registry/, Store/, Views/
-  Tests/PaktlyKitTests/ Fixtures/ + *Tests.swift
+  Sources/PaktlyKit/    Models/, Registry/, (yakında) Store/, Views/
+  Tests/PaktlyKitTests/ Fixtures/, Support/, *Tests.swift
 packs/example-nihongo/  Reference pack, schema 1.1.0, audio + IPA + examples
 schema/                 manifest + lesson JSON Schema (mirrored in backend/internal/pack/schemas)
 docs/
@@ -54,9 +54,16 @@ README.md               Project front door
   docker-compose ile herkes kendi başına çalıştırabilir.
 - **Monetization**: Obsidian modeli — free/open core sonsuz, paid sync + AI
   Phase 8'de. Hiç pack ödemeli olmaz.
-- **AI strategy**: multi-provider proxy (`/v1/ai/*`). Default Gemini
-  (KVKK/GDPR). DeepSeek opsiyonel ucuz alternatif. Ollama self-hosters için.
-  Phase 8'de geliyor.
+- **AI strategy**: multi-provider proxy (`/v1/ai/*`). **Default DeepSeek**
+  (~50% daha ucuz). Gemini alternatif (KVKK/GDPR önemliyse opt-in). Ollama
+  self-host kullanıcılar için. Creator pack başına seçer; Paktly seçilen
+  sağlayıcının API key'ini verir (creator kendi sağlayıcı hesabını
+  yönetmez), tüm AI çağrıları Paktly merkezi hesabından geçer, fatura
+  Paktly'de biter. Phase 8'de geliyor.
+- **App UI dilleri** (launch minimum): TR, EN, DE, zh-Hans (anakara Çince),
+  ES. Pack içerik lokalizasyonu ayrı (manifest `uiLanguage`).
+- **Video pack'lerde**: opsiyonel, asla zorunlu değil. Validator warning yok,
+  featured curation video varlığına bakmaz. Phase 6 öncesi roadmap dışı.
 - **Creator billing**: Phase 8'de yok, Phase 9'da Stripe Connect ile gelir.
   Phase 8'de Paktly tüm AI cost'unu absorb eder (subscription'tan), creator'a
   sadece analytics dashboard.
@@ -115,11 +122,15 @@ sudo journalctl -u paktly -f
 ## Mevcut faz
 
 **Phase 3 — iOS SDK alpha** (devam ediyor). Tamamlanan:
+- Phase 2.5: pack format v1.1 — schema, validator (`vocabLessonWithExamples`
+  test), Manifest+Lesson Swift modelleri, örnek pack 1.1 migration + audio.
+  (Audio-warning kuralı Phase 5'e itildi — backend'de "warning" kanalı yok.)
 - Phase 3a: Codable models (Manifest, Lesson, Block sum type, AICapabilities)
+- Phase 3b: RegistryClient (auth + list + get + downloadInfo + uploadPack +
+  importGitHub, URLProtocol-stub'lı 13 test)
 - iOS CI workflow
 
 Sıradaki:
-- Phase 3b: RegistryClient (REST: list/get/download/auth, async/await)
 - Phase 3c: PackStore (zip extract, SHA256 verify, lokal cache)
 - Phase 3d: LessonRunner SwiftUI views (explanation, vocabulary cards)
 - Phase 3e: Egzersiz tip view'ları (flashcard, multipleChoice, typing,
