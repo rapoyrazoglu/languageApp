@@ -161,5 +161,19 @@ tagleri otomatik oluşur.
 
 ## Lisans
 
-Henüz seçilmedi (kod için MIT veya Apache-2.0 düşünülüyor). Pack içeriklerinin
-lisansı her pack'in kendi `manifest.json` `license` alanında belirtilir.
+Kod **MIT** lisansı altında — bkz. [LICENSE](LICENSE). Self-hosting tam
+desteklenir; SDK ve backend registry-agnostiktir, paktly.dev'i hiç
+kullanmadan tüm sistemi çalıştırabilirsin (docker compose ile birkaç dakika).
+
+Her **pack içeriği** kendi `manifest.json` `license` alanındaki lisansı
+taşır (CC-BY-4.0 veya CC-BY-SA-4.0 önerilir).
+
+## Sürdürülebilirlik modeli
+
+Paktly **Obsidian'a benzer** bir model izler:
+
+- **Temel her şey ücretsiz + open source**: pack format, backend, SDK, mobile
+  app çekirdeği. İndir, kendin host et, hiç ödeme yapmadan kullan.
+- **Paktly hosted (paktly.dev)** convenience servisidir — fiyatlandırma sadece
+  AI açıklamaları ve cihazlar arası sync gibi sunucu maliyetli özellikler için
+  (Phase 8'de). Free tier: pack ara, indir, lokal çalıştır.

@@ -68,21 +68,43 @@ Tarihler **niyet beyanı**dır, taahhüt değil.
 - [x] **Integration test**: `make test-integration` — gerçek Postgres + MinIO
   ile uçtan uca register/login → upload → list → search → download → audit →
   duplicate-version → webhook subscriptions
-- [ ] **Backend deploy** (Fly.io / Railway / VPS — kararlaştırılacak)
+- [x] **Backend deploy** — AWS, eu-central-1, ~$32/ay (paktly.dev). Auto-deploy
+  Watchtower + GHCR ile. Detaylar [docs/AWS_SETUP.md](docs/AWS_SETUP.md).
+
+## Phase 2.5 — Pack format v1.1 (mini-faz)
+
+> Phase 3 öncesi pedagojik elementleri zorunlu / yarı-zorunlu kıl. iOS SDK'yı
+> direkt v1.1'e karşı yazalım, sonradan refactor olmasın.
+
+- [ ] **Vocabulary genişletme**: word, reading, meaning + `audio` (zorunlu),
+  `examples[]` (opsiyonel ama önerilen), `ipa` (opsiyonel)
+- [ ] **Example sentence bloğu**: yeni block tipi `example` — text + translation
+  + audio + grammar referansı
+- [ ] **Level path**: manifest'te `previousPack` + `nextPack` (opsiyonel),
+  curated paketler için zincir
+- [ ] **Audio kuralı**: vocabulary item'ı için audio yoksa validator warning
+  (zorunluluk değil ama featured olabilmesi için şart — Phase 5)
+- [ ] Schema bump 1.0.0 → 1.1.0 (geriye uyumlu, eski paketler hâlâ çalışır)
+- [ ] Validator update + test
+- [ ] Örnek pack'i (`example-nihongo`) v1.1'e migrate et + audio ekle
 
 ## Phase 3 — iOS SDK + Demo App
 
 > Dil: **Swift**, minimum iOS 16. Paket yönetimi: Swift Package Manager.
+> Registry-agnostik: SDK herhangi bir paktly-uyumlu registry URL'ine bağlanabilir
+> (kendi self-host'unu kullananlar dahil).
 
 - [ ] `LanguageAppKit` SPM paketi
-- [ ] `RegistryClient` (REST: list / get / download)
+- [ ] `RegistryClient` (REST: list / get / download) — base URL configurable
 - [ ] `PackStore`: indirilen pack'leri lokal disk'te saklar, hash doğrular
-- [ ] `LessonRunner`: block stream'ini (explanation/vocabulary/exercise)
+- [ ] `LessonRunner`: block stream'ini (explanation/vocabulary/example/exercise)
   SwiftUI view'larına render eder
 - [ ] Egzersiz tipleri: flashcard, multipleChoice, typing, listening
   (matching + fillInBlank Phase 4'te)
-- [ ] AVFoundation ile audio playback
-- [ ] Demo SwiftUI app: pack ara, indir, çalış
+- [ ] AVFoundation ile audio playback (vocabulary item'larından)
+- [ ] Demo SwiftUI app: pack ara, indir, çalış. Default registry api.paktly.dev,
+  Settings'ten değiştirilebilir
+- [ ] Lokal pack yükleme: cihazda var olan zip'i SDK'ya beslemek (registry'siz mod)
 - [ ] TestFlight'a iç beta
 
 ## Phase 4 — Android SDK + Demo App
@@ -97,23 +119,37 @@ Tarihler **niyet beyanı**dır, taahhüt değil.
 - [ ] Demo Compose app
 - [ ] Internal track beta (Play Console)
 
-## Phase 5 — Topluluk + Yazar UX
+## Phase 5 — Topluluk + Yazar UX + Self-hosting
 
-- [ ] Web tabanlı pack tarayıcısı (read-only Next.js)
+> "Yapılandırılmış açık" modelin uygulaması: kim isterse pack publish edebilir,
+> kim isterse kendi registry'sini kurabilir. Curation gatekeeping yerine
+> öne çıkarmayla yapılır.
+
+- [ ] **AUTHORING.md**: kaliteli pack nasıl yazılır — örnek cümleler,
+  audio kuralları, level path, tipik tuzaklar. "Paktly Originals" referans
+  paketleri burada listelenir.
+- [ ] **SELF_HOSTING.md**: docker compose ile kendi registry'ini ayağa kaldır,
+  S3-compatible storage, mobil app'i kendi URL'ine yönlendir. Paktly hosted
+  servisini hiç kullanmadan tüm sistem nasıl çalıştırılır.
+- [ ] **Web tabanlı pack tarayıcısı** (read-only Next.js) — paktly.dev'in
+  search/discovery yüzü. Featured packs öne çıkarılır.
 - [ ] Pack sayfası: README, sürüm geçmişi, "indirme komutu"
-- [ ] CLI: `langapp pack validate`, `langapp pack publish`
+- [ ] **CLI**: `paktly pack validate`, `paktly pack publish`, `paktly pack new`
 - [ ] Pack yazma şablonu (cookiecutter benzeri)
 - [ ] Çeviri pipeline'ı (yazarın bir pack'i başka UI dillerine çevirebilmesi)
+- [ ] **Featured curation** mekanizması: biz manuel "Paktly seçimi" işaretleriz,
+  search'te öne çıkar
 
 ## Phase 6 — Öğrenme döngüsü
 
 > Bu noktaya kadar SDK sadece "ders çal"abiliyor. Buradan sonra **öğrenme**
 > başlıyor.
 
-- [ ] Spaced repetition (FSRS veya SM-2 — karar verilecek)
-- [ ] İlerleme senkronizasyonu (cihazlar arası, opsiyonel)
-- [ ] Streak / hedefler
+- [ ] Spaced repetition (FSRS veya SM-2 — karar verilecek), client-side
+- [ ] Streak / hedefler (lokal)
 - [ ] Topluluk: pack rating, yorum, "report content"
+- [ ] **İlerleme senkronizasyonu** (cihazlar arası) — opt-in, paid feature
+  (Phase 8'in parçası)
 
 ## Phase 7 — Production hardening (launch öncesi)
 
@@ -143,23 +179,63 @@ Tarihler **niyet beyanı**dır, taahhüt değil.
 
 Hedef bütçe: ~$120/ay. Reklam dönüşümlerinde düşük tutar.
 
+## Phase 8 — Paid cloud features
+
+> Sürdürülebilirlik için. Obsidian modeli: temel kullanım sonsuz ücretsiz +
+> kendi self-host eden hiç ödemez. Sadece Paktly hosted'in convenience
+> özellikleri ücretli.
+
+- [ ] **AI explain & generate**: Gemini proxy (`/v1/ai/...`), per-user token
+  quota, audit log entegrasyonu. Kelime/yapı sorulduğunda LLM'le açıklama
+  üretir, AI alıştırma türetir
+- [ ] **Cross-device sync**: ilerleme + indirilen packlist + favoriler
+  cihazlar arası senkronize. Encrypted at-rest, end-to-end değil (gizlilik
+  hassas içerik yok ama yine de minimize)
+- [ ] **Stripe entegrasyonu**: aylık abonelik, free trial, iptal akışı
+- [ ] **Free tier limitleri**: anonim N istek/dk + auth user M istek/saat
+  zaten var. AI için ayrı kota: free user 0 AI, paid user X token/ay
+- [ ] **Account management UI**: web sayfası — abonelik durumu, ödeme yöntemi,
+  kullanım, iptal
+- [ ] **Pricing page**: paktly.dev/pricing — net plan karşılaştırması
+
+Hedef: 5-10 paid kullanıcı break-even, 50+ kullanıcı kâr eder.
+
 ---
 
 ## Açık sorular (henüz karar verilmedi)
 
-- Telif: kullanıcı ilerlemesi sunucuya gitmek **zorunda mı**, yoksa cihazda mı
-  kalsın? (default: cihazda kalır, opt-in sync)
-- Multi-tenant mi tek instance mı? Şimdilik tek instance.
 - Pack'lerde **video** ne zaman? Format destekliyor ama validator henüz değil.
-- Ödemeli pack desteği? Şimdilik **hayır**, format buna uygun ama platform değil.
+- **AI provider strategy**: tek vendor (Gemini) mı, multi-provider fallback mı
+  (Anthropic/OpenAI/Gemini)? Şimdilik Gemini.
+- **Translation/UI lokalizasyon**: pack içeriği dışında app UI'ı kaç dile?
+  Şimdilik TR + EN.
+- **Curation komitesi**: "Paktly seçimi" featured paketleri kim onaylıyor —
+  tek başına ben mi, topluluk vote mu?
+
+## Karara bağlananlar
+
+- **Lisans**: kod MIT, pack içerikleri her pack'in `manifest.json`'daki kendi
+  lisansı (genelde CC-BY veya CC-BY-SA önerilir).
+- **Self-hosting**: birinci sınıf desteklenir. SDK ve backend tamamen
+  registry-agnostic.
+- **Paid model**: Obsidian benzeri local-first. Temel her şey ücretsiz +
+  open source. Sadece convenience features (AI, cross-device sync) paid.
+- **Kullanıcı ilerlemesi**: default cihazda kalır, opt-in cloud sync (Phase 8).
+- **Multi-tenant**: tek instance, paktly.dev tek registry. Self-hosting
+  isteyen kendi instance'ını çalıştırır.
+- **Ödemeli pack**: hayır. Sadece ücretsiz / CC-lisanslı pack'ler. Yazarlar
+  ister tip jar / GitHub Sponsors koyabilir, biz aracılık yapmıyoruz.
 
 ## Sürüm hedefleri
 
 | Sürüm  | Kapsar                                              |
 |:------:|-----------------------------------------------------|
-| 0.1.0  | Phase 0 + Phase 1 (mevcut HEAD)                     |
-| 0.2.0  | Phase 2 (test + CI + audit + webhook + integration) |
+| 0.1.0  | Phase 0 + Phase 1                                   |
+| 0.2.0  | Phase 2 + AWS deploy + auto-deploy                  |
+| 0.2.1  | Phase 2.5 — pack format v1.1 (audio + examples)     |
 | 0.3.0  | iOS SDK alpha (Phase 3'ün çekirdeği)                |
 | 0.4.0  | Android SDK alpha (Phase 4'ün çekirdeği)            |
-| 0.5.0  | Web pack tarayıcısı + CLI                           |
-| 1.0.0  | İki SDK + 5+ pack + spaced repetition               |
+| 0.5.0  | Web pack tarayıcısı + CLI + self-hosting docs       |
+| 0.6.0  | Spaced repetition + topluluk (Phase 6)              |
+| 1.0.0  | İki SDK + 5+ Paktly Originals + SRS                 |
+| 1.1.0  | Paid cloud (AI + sync, Phase 8)                     |
