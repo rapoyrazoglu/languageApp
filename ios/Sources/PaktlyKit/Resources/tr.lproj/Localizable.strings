@@ -1,0 +1,41 @@
+/* Ders çalıştırıcı — gezinme */
+"button.next" = "İleri";
+"button.previous" = "Geri";
+"button.finish" = "Bitir";
+
+/* Ders çalıştırıcı — kelime kartı */
+"button.playAudio" = "Sesi çal";
+"section.examples" = "Örnekler";
+"section.notes" = "Notlar";
+
+/* Ders çalıştırıcı — tamamlama / boş ders */
+"lesson.complete.title" = "Ders tamamlandı";
+"lesson.complete.body" = "Güzel iş çıkardın. Kartları yeniden gözden geçirebilir veya sonraki derse geçebilirsin.";
+"lesson.empty.title" = "Burada henüz bir şey yok";
+"lesson.empty.body" = "Bu ders dosyasında içerik bloğu bulunmuyor.";
+
+/* Ders çalıştırıcı — henüz yazılmamış egzersiz tipi yer tutucusu */
+"exercise.placeholder.title" = "Etkileşimli egzersiz";
+"exercise.placeholder.body" = "Bu egzersiz tipi yakında geliyor.";
+
+/* Egzersiz etkileşimleri (tüm aileler için ortak) */
+"exercise.button.submit" = "Gönder";
+"exercise.button.continue" = "Devam";
+"exercise.button.reveal" = "Cevabı göster";
+"exercise.button.tryAgain" = "Tekrar dene";
+"exercise.feedback.correct" = "Doğru";
+"exercise.feedback.incorrect" = "Tam değil";
+"exercise.label.correctAnswer" = "Doğru cevap";
+"exercise.label.explanation" = "Açıklama";
+"exercise.label.hint" = "İpucu";
+
+/* Recall (flashcard) */
+"exercise.recall.tapToReveal" = "Kartı çevirmek için dokun";
+"exercise.recall.iKnew" = "Biliyordum";
+"exercise.recall.studyMore" = "Tekrar etmem lazım";
+
+/* Yazma egzersizi */
+"exercise.typing.placeholder" = "Cevabını yaz";
+
+/* Kelime kartı sayacı */
+"vocabulary.cardCount" = "%lld / %lld";

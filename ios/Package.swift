@@ -9,6 +9,7 @@ import PackageDescription
 
 let package = Package(
     name: "PaktlyKit",
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v16),
         .macOS(.v13),
@@ -19,7 +20,8 @@ let package = Package(
     targets: [
         .target(
             name: "PaktlyKit",
-            path: "Sources/PaktlyKit"
+            path: "Sources/PaktlyKit",
+            resources: [.process("Resources")]
         ),
         .testTarget(
             name: "PaktlyKitTests",

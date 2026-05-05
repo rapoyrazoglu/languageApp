@@ -1,0 +1,41 @@
+/* Lesson runner — navigation */
+"button.next" = "Next";
+"button.previous" = "Back";
+"button.finish" = "Finish";
+
+/* Lesson runner — vocabulary */
+"button.playAudio" = "Play audio";
+"section.examples" = "Examples";
+"section.notes" = "Notes";
+
+/* Lesson runner — completion / empty */
+"lesson.complete.title" = "Lesson complete";
+"lesson.complete.body" = "Nicely done. You can review the cards or move on.";
+"lesson.empty.title" = "Nothing here yet";
+"lesson.empty.body" = "This lesson has no content blocks.";
+
+/* Lesson runner — exercise placeholder (families not yet implemented) */
+"exercise.placeholder.title" = "Interactive exercise";
+"exercise.placeholder.body" = "This exercise type's renderer is on the way.";
+
+/* Exercise interactions (shared across families) */
+"exercise.button.submit" = "Submit";
+"exercise.button.continue" = "Continue";
+"exercise.button.reveal" = "Reveal";
+"exercise.button.tryAgain" = "Try again";
+"exercise.feedback.correct" = "Correct";
+"exercise.feedback.incorrect" = "Not quite";
+"exercise.label.correctAnswer" = "Correct answer";
+"exercise.label.explanation" = "Explanation";
+"exercise.label.hint" = "Hint";
+
+/* Recall (flashcard) */
+"exercise.recall.tapToReveal" = "Tap the card to reveal";
+"exercise.recall.iKnew" = "I knew it";
+"exercise.recall.studyMore" = "Need more practice";
+
+/* Typing */
+"exercise.typing.placeholder" = "Type your answer";
+
+/* Vocabulary card progress */
+"vocabulary.cardCount" = "%lld of %lld";
