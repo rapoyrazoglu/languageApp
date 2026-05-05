@@ -145,13 +145,105 @@ public struct ExerciseBlock: Codable, Equatable, Sendable {
     }
 }
 
+/// All 30 exercise types creators can declare in a pack. Grouped into 10
+/// mechanic families on the rendering side: a single SwiftUI view per family
+/// handles every variant in that family by switching on this enum and on the
+/// typed payload (`ExerciseData`).
+///
+/// The original 6 (introduced in pack format 1.1.0) are first; the 24 added
+/// in 1.2.0 follow. Existing packs keep validating against the new schema —
+/// we only added enum cases.
 public enum ExerciseType: String, Codable, Sendable, CaseIterable {
+    // Family 1 — Recall
     case flashcard
+    case flashcardReverse
+    case flashcardAudio
+    case flashcardImage
+
+    // Family 2 — MultipleChoice
+    case multipleChoice
+    case multipleChoiceReverse
+    case multipleChoiceAudio
+    case multipleChoiceImage
+    case multipleChoiceContext
+
+    // Family 3 — Typing
+    case typing
+    case typingReverse
+    case typingAudio
+
+    // Family 4 — Listening
+    case listening
+    case dictation
+    case listenAndAct
+
+    // Family 5 — Matching
+    case matching
+    case matchingAudio
+    case matchingImage
+
+    // Family 6 — FillInBlank
+    case fillInBlank
+    case fillInBlankChoice
+    case fillInMultiple
+
+    // Family 7 — WordOrder
+    case wordOrder
+    case letterScramble
+
+    // Family 8 — Reading
+    case readingTrueFalse
+    case readingComprehension
+    case readingCloze
+
+    // Family 9 — Production
+    case translateSentence
+    case composeSentence
+
+    // Family 10 — Categorization
+    case oddOneOut
+    case categorySort
+
+    /// The mechanic family this type belongs to. Lets the runner pick the
+    /// right view + typed `ExerciseData` decoder without a 30-arm switch
+    /// at every call site.
+    public var family: ExerciseFamily {
+        switch self {
+        case .flashcard, .flashcardReverse, .flashcardAudio, .flashcardImage:
+            return .recall
+        case .multipleChoice, .multipleChoiceReverse, .multipleChoiceAudio, .multipleChoiceImage, .multipleChoiceContext:
+            return .multipleChoice
+        case .typing, .typingReverse, .typingAudio:
+            return .typing
+        case .listening, .dictation, .listenAndAct:
+            return .listening
+        case .matching, .matchingAudio, .matchingImage:
+            return .matching
+        case .fillInBlank, .fillInBlankChoice, .fillInMultiple:
+            return .fillInBlank
+        case .wordOrder, .letterScramble:
+            return .wordOrder
+        case .readingTrueFalse, .readingComprehension, .readingCloze:
+            return .reading
+        case .translateSentence, .composeSentence:
+            return .production
+        case .oddOneOut, .categorySort:
+            return .categorization
+        }
+    }
+}
+
+public enum ExerciseFamily: String, Sendable, CaseIterable {
+    case recall
     case multipleChoice
     case typing
     case listening
     case matching
     case fillInBlank
+    case wordOrder
+    case reading
+    case production
+    case categorization
 }
 
 // MARK: - MediaRef

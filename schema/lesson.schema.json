@@ -91,7 +91,19 @@
         "type": { "const": "exercise" },
         "exerciseType": {
           "type": "string",
-          "enum": ["flashcard", "multipleChoice", "typing", "listening", "matching", "fillInBlank"]
+          "description": "30 declared types in 10 mechanic families. Pack format 1.1.0 packs use the original 6; 1.2.0+ packs may use any. SDK families: Recall (4), MultipleChoice (5), Typing (3), Listening (3), Matching (3), FillInBlank (3), WordOrder (2), Reading (3), Production (2), Categorization (2).",
+          "enum": [
+            "flashcard", "flashcardReverse", "flashcardAudio", "flashcardImage",
+            "multipleChoice", "multipleChoiceReverse", "multipleChoiceAudio", "multipleChoiceImage", "multipleChoiceContext",
+            "typing", "typingReverse", "typingAudio",
+            "listening", "dictation", "listenAndAct",
+            "matching", "matchingAudio", "matchingImage",
+            "fillInBlank", "fillInBlankChoice", "fillInMultiple",
+            "wordOrder", "letterScramble",
+            "readingTrueFalse", "readingComprehension", "readingCloze",
+            "translateSentence", "composeSentence",
+            "oddOneOut", "categorySort"
+          ]
         },
         "prompt": { "type": "string" },
         "data": {
