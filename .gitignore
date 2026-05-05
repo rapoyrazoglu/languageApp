@@ -23,6 +23,10 @@ backend/data/
 **/DerivedData/
 *.xcuserstate
 
+# SwiftPM build artifacts (compiler module cache, intermediate objects)
+**/.build/
+.swiftpm/
+
 # Android (ileride Android klasörü için)
 **/.gradle/
 **/build/
