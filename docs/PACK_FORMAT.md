@@ -1,8 +1,16 @@
-# Language Pack Format v1.0.0
+# Language Pack Format
 
 Bu doküman, dil paketlerinin (pack) yapısını ve dağıtım yollarını tanımlar.
 SDK ve backend bu spesifikasyona göre çalışır — değişiklikler `schemaVersion`
 artırılarak yapılır.
+
+| Sürüm | Durum | Eklenenler |
+|---|---|---|
+| **1.1.0** | Aktif (önerilen) | `aiCapabilities`, vocabulary `examples[]` + `ipa`, `previousPack`/`nextPack` (level path) |
+| 1.0.0 | Hâlâ desteklenir (backwards-compatible) | İlk kararlı sürüm |
+
+> v1.0.0 paketler değişiklik gerektirmez — schema'ya yeni alanlar **opsiyonel**
+> olarak eklendi. Eski paketler hiçbir şey yapmadan çalışmaya devam eder.
 
 ## 1. Pack nedir?
 
@@ -48,7 +56,41 @@ Zorunlu alanlar: `schemaVersion`, `id`, `name`, `version`, `language`, `author`,
 - MINOR: yeni ders eklendi
 - PATCH: yazım hatası düzeltildi, ses yeniden kaydedildi
 
-**`schemaVersion`:** Bu manifestin uyduğu pack format sürümü. Şu an `1.0.0`.
+**`schemaVersion`:** Bu manifestin uyduğu pack format sürümü. Geçerli değerler: `"1.0.0"` veya `"1.1.0"`. Yeni pack'ler `"1.1.0"` kullanmalı.
+
+### 3.1 v1.1 opsiyonel alanlar
+
+#### `aiCapabilities` (opsiyonel)
+
+Pack'in destek ettiği AI özelliklerini deklare eder. Pack offline tam çalışır;
+bu alan sadece **uygulamadaki AI butonlarını hangi pack'lerde göstereceğimizi**
+belirler. Backend ek olarak kullanıcının abonelik durumunu kontrol eder.
+
+```json
+"aiCapabilities": {
+  "questionGeneration": true,
+  "explanation": true,
+  "conversation": false,
+  "hint": true
+}
+```
+
+| Alan | Anlam |
+|---|---|
+| `questionGeneration` | AI bu pack'in içeriğinden yeni alıştırma soruları türetebilir |
+| `explanation` | Kullanıcı "bunu daha detaylı anlat" derse AI gramer/etimoloji açıklaması üretir |
+| `conversation` | AI bu pack'in vocabulary'siyle konuşma pratiği yaptırır |
+| `hint` | Egzersiz sırasında bağlama duyarlı ipucu verir |
+
+#### `previousPack` / `nextPack` (opsiyonel — level path)
+
+Curated bir öğrenme yolunda pack'ler birbirine zincirlenir. Kullanıcı bir pack'i
+bitirdiğinde SDK `nextPack`'i önerir.
+
+```json
+"previousPack": "com.paktly.ja.beginner-1",
+"nextPack":     "com.paktly.ja.beginner-3"
+```
 
 ## 4. Lesson
 
@@ -70,10 +112,35 @@ Hedef dil → ana dil çevirisi listesi.
 {
   "type": "vocabulary",
   "items": [
-    { "target": "あ", "translation": "a", "transliteration": "a", "audio": "media/audio/a.mp3" }
+    {
+      "target": "こんにちは",
+      "translation": "merhaba",
+      "transliteration": "konnichiwa",
+      "audio": "media/audio/konnichiwa.mp3",
+      "ipa": "/koɲɲitɕiwa/",
+      "examples": [
+        {
+          "text": "こんにちは、田中さん",
+          "translation": "merhaba Tanaka-san",
+          "audio": "media/audio/example-1.mp3"
+        }
+      ]
+    }
   ]
 }
 ```
+
+**Alanlar:**
+| Alan | Sürüm | Zorunlu | Açıklama |
+|---|---|---|---|
+| `target` | 1.0.0 | ✓ | Öğrenilecek dilde kelime/ifade |
+| `translation` | 1.0.0 | ✓ | UI dilinde çevirisi |
+| `transliteration` | 1.0.0 | — | romaji, pinyin, transliteration |
+| `audio` | 1.0.0 | — | Ses dosyası yolu (1.1.0+'da opsiyonel; SDK iOS Siri/Android TTS ile fallback yapar) |
+| `image` | 1.0.0 | — | Görsel ipucu |
+| `notes` | 1.0.0 | — | Yazarın özel notu |
+| `ipa` | **1.1.0** | — | Phonetic transcription (IPA) |
+| `examples[]` | **1.1.0** | — | Örnek cümle listesi (text + translation + opsiyonel audio + notes) |
 
 ### 4.3 `exercise`
 Etkileşimli alıştırma. `exerciseType` alanı türü belirler:

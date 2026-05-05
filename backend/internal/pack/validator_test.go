@@ -296,3 +296,140 @@ func containsMessage(errs []ValidationErr, substr string) bool {
 	}
 	return false
 }
+
+// --- pack format v1.1 ---
+
+// minimalManifestV11 is the same as minimalManifest but bumped to schema 1.1.0
+// with the new optional fields populated.
+func minimalManifestV11() map[string]any {
+	m := minimalManifest()
+	m["schemaVersion"] = "1.1.0"
+	m["aiCapabilities"] = map[string]any{
+		"questionGeneration": true,
+		"explanation":        true,
+		"conversation":       false,
+		"hint":               false,
+	}
+	m["previousPack"] = "com.github.test.intro"
+	m["nextPack"] = "com.github.test.next"
+	return m
+}
+
+// vocabLessonWithExamples is a lesson exercising the v1.1 vocabulary additions:
+// per-item ipa, examples[] with their own audio refs.
+func vocabLessonWithExamples() map[string]any {
+	return map[string]any{
+		"id":    "001",
+		"title": "Greetings",
+		"blocks": []any{
+			map[string]any{
+				"type": "vocabulary",
+				"items": []any{
+					map[string]any{
+						"target":      "こんにちは",
+						"translation": "merhaba",
+						"ipa":         "/koɲɲitɕiwa/",
+						"audio":       "media/audio/konnichiwa.mp3",
+						"examples": []any{
+							map[string]any{
+								"text":        "こんにちは、田中さん",
+								"translation": "merhaba Tanaka-san",
+								"audio":       "media/audio/example-1.mp3",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func TestValidate_V11_ManifestAndExamples_HappyPath(t *testing.T) {
+	v := newValidator(t)
+	z := buildZip(t, "", map[string]any{
+		"manifest.json":           minimalManifestV11(),
+		"lessons/001.json":        vocabLessonWithExamples(),
+		"media/audio/konnichiwa.mp3": []byte{0xff, 0xfb, 0x90, 0x44}, // tiny mp3-ish header
+		"media/audio/example-1.mp3":  []byte{0xff, 0xfb, 0x90, 0x44},
+	})
+	res := v.ValidateZip(z)
+	if !res.Ok() {
+		t.Fatalf("v1.1 happy path failed: %+v", res.Errors)
+	}
+	if res.Manifest.SchemaVersion != "1.1.0" {
+		t.Fatalf("schemaVersion = %q, want 1.1.0", res.Manifest.SchemaVersion)
+	}
+	if res.Manifest.AICapabilities == nil || !res.Manifest.AICapabilities.QuestionGeneration {
+		t.Fatalf("aiCapabilities not parsed: %+v", res.Manifest.AICapabilities)
+	}
+	if res.Manifest.PreviousPack != "com.github.test.intro" {
+		t.Fatalf("previousPack = %q", res.Manifest.PreviousPack)
+	}
+}
+
+func TestValidate_V11_ExampleAudioMustExist(t *testing.T) {
+	v := newValidator(t)
+	// example references an audio file that's NOT in the zip
+	z := buildZip(t, "", map[string]any{
+		"manifest.json":              minimalManifestV11(),
+		"lessons/001.json":           vocabLessonWithExamples(),
+		"media/audio/konnichiwa.mp3": []byte{0xff, 0xfb},
+		// media/audio/example-1.mp3 omitted on purpose
+	})
+	res := v.ValidateZip(z)
+	if res.Ok() {
+		t.Fatal("expected error for missing example audio file")
+	}
+	if !containsMessage(res.Errors, "example-1.mp3") {
+		t.Fatalf("expected missing-media error mentioning example-1.mp3, got %+v", res.Errors)
+	}
+}
+
+func TestValidate_V11_OldPackStillValidates(t *testing.T) {
+	// A schema 1.0.0 manifest with no v1.1 fields must keep validating —
+	// backwards compatibility is the whole point of bumping minor.
+	v := newValidator(t)
+	m := minimalManifest() // schema 1.0.0
+	z := buildZip(t, "", map[string]any{
+		"manifest.json":    m,
+		"lessons/001.json": minimalLesson(),
+	})
+	res := v.ValidateZip(z)
+	if !res.Ok() {
+		t.Fatalf("legacy v1.0.0 pack failed: %+v", res.Errors)
+	}
+	if res.Manifest.AICapabilities != nil {
+		t.Fatal("aiCapabilities should be nil for v1.0.0 pack with no field")
+	}
+}
+
+func TestValidate_V11_RejectsUnknownSchemaVersion(t *testing.T) {
+	v := newValidator(t)
+	m := minimalManifest()
+	m["schemaVersion"] = "2.0.0" // never published
+	z := buildZip(t, "", map[string]any{
+		"manifest.json":    m,
+		"lessons/001.json": minimalLesson(),
+	})
+	res := v.ValidateZip(z)
+	if res.Ok() {
+		t.Fatal("expected error for unknown schemaVersion 2.0.0")
+	}
+}
+
+func TestValidate_V11_RejectsUnknownAICapabilityField(t *testing.T) {
+	v := newValidator(t)
+	m := minimalManifestV11()
+	m["aiCapabilities"] = map[string]any{
+		"questionGeneration": true,
+		"madeUpFeature":      true, // additionalProperties: false should reject
+	}
+	z := buildZip(t, "", map[string]any{
+		"manifest.json":    m,
+		"lessons/001.json": minimalLesson(),
+	})
+	res := v.ValidateZip(z)
+	if res.Ok() {
+		t.Fatal("expected error for unknown aiCapabilities field")
+	}
+}

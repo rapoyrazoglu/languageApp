@@ -58,9 +58,25 @@
               "target": { "type": "string", "description": "Word/phrase in the language being learned" },
               "translation": { "type": "string" },
               "transliteration": { "type": "string", "description": "e.g. romaji for Japanese" },
-              "audio": { "type": "string", "description": "Path to audio file relative to pack root" },
+              "audio": { "type": "string", "description": "Path to audio file relative to pack root. Optional in 1.1.0+; SDK falls back to platform TTS when absent." },
               "image": { "type": "string" },
-              "notes": { "type": "string" }
+              "notes": { "type": "string" },
+              "ipa": { "type": "string", "description": "Optional. Phonetic transcription in IPA, e.g. /koɲɲitɕiwa/" },
+              "examples": {
+                "type": "array",
+                "description": "Optional. Example sentences featuring this vocab item.",
+                "items": {
+                  "type": "object",
+                  "required": ["text", "translation"],
+                  "properties": {
+                    "text": { "type": "string", "description": "Example sentence in the target language" },
+                    "translation": { "type": "string", "description": "Translation in the pack's UI language" },
+                    "audio": { "type": "string", "description": "Optional. Path to audio file relative to pack root." },
+                    "notes": { "type": "string", "description": "Optional. Grammar / cultural note." }
+                  },
+                  "additionalProperties": false
+                }
+              }
             },
             "additionalProperties": false
           }

@@ -3,22 +3,35 @@ package pack
 // Manifest is the strongly-typed view of manifest.json.
 // JSON Schema validation runs first; this struct is for code that needs the values.
 type Manifest struct {
-	SchemaVersion string       `json:"schemaVersion"`
-	ID            string       `json:"id"`
-	Name          string       `json:"name"`
-	Version       string       `json:"version"`
-	Description   string       `json:"description,omitempty"`
-	Language      Language     `json:"language"`
-	UILanguage    string       `json:"uiLanguage,omitempty"`
-	Level         string       `json:"level,omitempty"`
-	Author        Author       `json:"author"`
-	License       string       `json:"license"`
-	Homepage      string       `json:"homepage,omitempty"`
-	Repository    *Repository  `json:"repository,omitempty"`
-	Tags          []string     `json:"tags,omitempty"`
-	Lessons       []LessonRef  `json:"lessons"`
-	Dependencies  []Dependency `json:"dependencies,omitempty"`
-	MinSDKVersion string       `json:"minSdkVersion,omitempty"`
+	SchemaVersion  string          `json:"schemaVersion"`
+	ID             string          `json:"id"`
+	Name           string          `json:"name"`
+	Version        string          `json:"version"`
+	Description    string          `json:"description,omitempty"`
+	Language       Language        `json:"language"`
+	UILanguage     string          `json:"uiLanguage,omitempty"`
+	Level          string          `json:"level,omitempty"`
+	Author         Author          `json:"author"`
+	License        string          `json:"license"`
+	Homepage       string          `json:"homepage,omitempty"`
+	Repository     *Repository     `json:"repository,omitempty"`
+	Tags           []string        `json:"tags,omitempty"`
+	Lessons        []LessonRef     `json:"lessons"`
+	Dependencies   []Dependency    `json:"dependencies,omitempty"`
+	MinSDKVersion  string          `json:"minSdkVersion,omitempty"`
+	AICapabilities *AICapabilities `json:"aiCapabilities,omitempty"` // schema 1.1.0+
+	PreviousPack   string          `json:"previousPack,omitempty"`   // schema 1.1.0+
+	NextPack       string          `json:"nextPack,omitempty"`       // schema 1.1.0+
+}
+
+// AICapabilities flags which AI affordances a pack expects to support. Pure
+// declaration — backend still gates the actual /v1/ai/* call by user
+// subscription. Pack works fully offline regardless of these values.
+type AICapabilities struct {
+	QuestionGeneration bool `json:"questionGeneration,omitempty"`
+	Explanation        bool `json:"explanation,omitempty"`
+	Conversation       bool `json:"conversation,omitempty"`
+	Hint               bool `json:"hint,omitempty"`
 }
 
 type Language struct {

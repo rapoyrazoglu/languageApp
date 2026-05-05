@@ -8,7 +8,7 @@
   "properties": {
     "schemaVersion": {
       "type": "string",
-      "const": "1.0.0",
+      "enum": ["1.0.0", "1.1.0"],
       "description": "Pack format version this manifest conforms to"
     },
     "id": {
@@ -137,6 +137,39 @@
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$",
       "description": "Minimum SDK version required to load this pack"
+    },
+    "aiCapabilities": {
+      "type": "object",
+      "description": "Optional. Declares which AI features this pack expects to support. The SDK uses these flags to decide which AI affordances to surface in the UI; the backend additionally checks the end user's subscription before forwarding to a provider. Pack still works fully offline regardless of these flags.",
+      "properties": {
+        "questionGeneration": {
+          "type": "boolean",
+          "description": "AI can synthesize new practice questions from this pack's content"
+        },
+        "explanation": {
+          "type": "boolean",
+          "description": "AI can give deeper grammar / etymology / context explanations on demand"
+        },
+        "conversation": {
+          "type": "boolean",
+          "description": "AI can hold conversation practice using this pack's vocabulary"
+        },
+        "hint": {
+          "type": "boolean",
+          "description": "AI can provide context-aware hints during exercises"
+        }
+      },
+      "additionalProperties": false
+    },
+    "previousPack": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*\\.[a-z0-9]+(-[a-z0-9]+)*(\\.[a-z0-9]+(-[a-z0-9]+)*)+$",
+      "description": "Optional. Pack id of the prerequisite pack in a curated level path (e.g. com.paktly.ja.beginner-1)"
+    },
+    "nextPack": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*\\.[a-z0-9]+(-[a-z0-9]+)*(\\.[a-z0-9]+(-[a-z0-9]+)*)+$",
+      "description": "Optional. Pack id of the recommended next pack in a curated level path"
     }
   },
   "additionalProperties": false

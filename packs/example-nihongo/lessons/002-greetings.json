@@ -8,10 +8,51 @@
     {
       "type": "vocabulary",
       "items": [
-        { "target": "こんにちは", "translation": "Merhaba", "transliteration": "konnichiwa", "audio": "media/audio/konnichiwa.mp3" },
-        { "target": "おはよう",   "translation": "Günaydın", "transliteration": "ohayou",     "audio": "media/audio/ohayou.mp3" },
-        { "target": "こんばんは", "translation": "İyi akşamlar", "transliteration": "konbanwa", "audio": "media/audio/konbanwa.mp3" },
-        { "target": "ありがとう", "translation": "Teşekkürler", "transliteration": "arigatou", "audio": "media/audio/arigatou.mp3" }
+        {
+          "target": "こんにちは",
+          "translation": "Merhaba",
+          "transliteration": "konnichiwa",
+          "audio": "media/audio/konnichiwa.mp3",
+          "ipa": "/koɲɲitɕiwa/",
+          "notes": "Gün ortası kullanılır. Sabah erken veya akşam karanlığında alternatifleri tercih edilir.",
+          "examples": [
+            { "text": "こんにちは、田中さん。", "translation": "Merhaba Tanaka-san." },
+            { "text": "こんにちは、お元気ですか?", "translation": "Merhaba, nasılsın?" }
+          ]
+        },
+        {
+          "target": "おはよう",
+          "translation": "Günaydın",
+          "transliteration": "ohayou",
+          "audio": "media/audio/ohayou.mp3",
+          "ipa": "/ohajoː/",
+          "notes": "Resmi ortamlarda 'おはようございます' (ohayou gozaimasu) tercih edilir.",
+          "examples": [
+            { "text": "おはようございます。", "translation": "Günaydın (resmi)." }
+          ]
+        },
+        {
+          "target": "こんばんは",
+          "translation": "İyi akşamlar",
+          "transliteration": "konbanwa",
+          "audio": "media/audio/konbanwa.mp3",
+          "ipa": "/kombaɰ̃wa/",
+          "examples": [
+            { "text": "こんばんは、お疲れ様。", "translation": "İyi akşamlar, kolay gelsin." }
+          ]
+        },
+        {
+          "target": "ありがとう",
+          "translation": "Teşekkürler",
+          "transliteration": "arigatou",
+          "audio": "media/audio/arigatou.mp3",
+          "ipa": "/aɾiɡatoː/",
+          "notes": "Resmi: 'ありがとうございます' (arigatou gozaimasu).",
+          "examples": [
+            { "text": "本当にありがとう。", "translation": "Gerçekten teşekkürler." },
+            { "text": "ありがとうございます。", "translation": "Teşekkür ederim (resmi)." }
+          ]
+        }
       ]
     },
     {

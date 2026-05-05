@@ -161,8 +161,11 @@ func (v *Validator) ValidateZip(data []byte) *ValidationResult {
 				Type         string `json:"type"`
 				ExerciseType string `json:"exerciseType,omitempty"`
 				Items        []struct {
-					Audio string `json:"audio,omitempty"`
-					Image string `json:"image,omitempty"`
+					Audio    string `json:"audio,omitempty"`
+					Image    string `json:"image,omitempty"`
+					Examples []struct {
+						Audio string `json:"audio,omitempty"`
+					} `json:"examples,omitempty"`
 				} `json:"items,omitempty"`
 				Media *struct {
 					Audio string `json:"audio,omitempty"`
@@ -184,6 +187,9 @@ func (v *Validator) ValidateZip(data []byte) *ValidationResult {
 			for _, it := range b.Items {
 				checkMedia(res, files, root, lref.File, it.Audio)
 				checkMedia(res, files, root, lref.File, it.Image)
+				for _, ex := range it.Examples {
+					checkMedia(res, files, root, lref.File, ex.Audio)
+				}
 			}
 			if b.Media != nil {
 				checkMedia(res, files, root, lref.File, b.Media.Audio)

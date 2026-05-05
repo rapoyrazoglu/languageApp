@@ -12,11 +12,57 @@
     {
       "type": "vocabulary",
       "items": [
-        { "target": "あ", "translation": "a", "transliteration": "a", "audio": "media/audio/a.mp3" },
-        { "target": "い", "translation": "i", "transliteration": "i", "audio": "media/audio/i.mp3" },
-        { "target": "う", "translation": "u", "transliteration": "u", "audio": "media/audio/u.mp3" },
-        { "target": "え", "translation": "e", "transliteration": "e", "audio": "media/audio/e.mp3" },
-        { "target": "お", "translation": "o", "transliteration": "o", "audio": "media/audio/o.mp3" }
+        {
+          "target": "あ",
+          "translation": "a",
+          "transliteration": "a",
+          "audio": "media/audio/a.mp3",
+          "ipa": "/a/",
+          "examples": [
+            { "text": "あい",   "translation": "aşk",  "notes": "İlk öğrendiğiniz kelime — iki harfli." },
+            { "text": "あさ",   "translation": "sabah" }
+          ]
+        },
+        {
+          "target": "い",
+          "translation": "i",
+          "transliteration": "i",
+          "audio": "media/audio/i.mp3",
+          "ipa": "/i/",
+          "examples": [
+            { "text": "いえ", "translation": "ev" }
+          ]
+        },
+        {
+          "target": "う",
+          "translation": "u",
+          "transliteration": "u",
+          "audio": "media/audio/u.mp3",
+          "ipa": "/ɯ/",
+          "examples": [
+            { "text": "うえ", "translation": "üst",   "notes": "İngilizce 'oo' değil; dudaklar yuvarlanmaz." }
+          ]
+        },
+        {
+          "target": "え",
+          "translation": "e",
+          "transliteration": "e",
+          "audio": "media/audio/e.mp3",
+          "ipa": "/e/",
+          "examples": [
+            { "text": "えき", "translation": "istasyon" }
+          ]
+        },
+        {
+          "target": "お",
+          "translation": "o",
+          "transliteration": "o",
+          "audio": "media/audio/o.mp3",
+          "ipa": "/o/",
+          "examples": [
+            { "text": "おかね", "translation": "para" }
+          ]
+        }
       ]
     },
     {
