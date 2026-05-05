@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "com.example.legacy",
+  "name": "Legacy v1.0 Pack",
+  "version": "0.1.0",
+  "language": { "code": "ja", "name": "Japanese" },
+  "author": { "name": "Author" },
+  "license": "CC-BY-4.0",
+  "lessons": [
+    { "id": "001", "file": "lessons/001.json" }
+  ]
+}
