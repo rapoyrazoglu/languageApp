@@ -7,6 +7,16 @@ yükleyerek dağıtır; SDK bunları indirip cihazda çalıştırır.
 > Bu repo şu anda **aktif geliştirme** aşamasındadır. Public API'ler ve pack
 > formatı `1.0.0` öncesinde değişebilir.
 
+## Sıfırdan başlıyorsan
+
+[**docs/GETTING_STARTED.md**](docs/GETTING_STARTED.md) — Mac'te hiçbir
+geliştirme tecrüben yoksa adım adım kurulum. Xcode, Claude Code CLI, git
+SSH, Mac üzerinde günlük iş akışı.
+
+[**CLAUDE.md**](CLAUDE.md) — projeyi devralan herhangi bir AI ajanın
+otomatik okuyacağı kontekst. Live URL'ler, locked decisions, mevcut faz,
+yaygın komutlar.
+
 ## Canlı dağıtım
 
 Backend AWS'de (Frankfurt, eu-central-1) çalışıyor:
