@@ -7,6 +7,18 @@ yükleyerek dağıtır; SDK bunları indirip cihazda çalıştırır.
 > Bu repo şu anda **aktif geliştirme** aşamasındadır. Public API'ler ve pack
 > formatı `1.0.0` öncesinde değişebilir.
 
+## Canlı dağıtım
+
+Backend AWS'de (Frankfurt, eu-central-1) çalışıyor:
+
+- **API**: <https://api.paktly.dev>
+- **Marka**: paktly.dev (DNS + TLS Caddy + Let's Encrypt)
+- **Mimari özeti**: tek EC2 (t4g.small) → Caddy → Go binary → RDS Postgres + S3
+- **Otomatik deploy**: `main`'e push → GH Actions GHCR'a image basar → EC2'deki
+  Watchtower 5 dk içinde pull edip yeniden başlatır
+- Adım adım kurulum: [docs/AWS_SETUP.md](docs/AWS_SETUP.md)
+
+
 ## Mimari
 
 ```
