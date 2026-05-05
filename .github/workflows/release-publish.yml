@@ -1,0 +1,81 @@
+name: release-publish
+
+# Manual milestone tag + GitHub release.
+# Triggered from the Actions tab; pushing the resulting tag also fires
+# release.yml, which builds and pushes the Docker images for that semver.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Semver without the 'v' prefix, e.g. 0.2.0"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark as a pre-release"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: validate semver
+        run: |
+          if ! [[ "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::version must be valid semver (e.g. 1.2.3 or 1.2.3-rc.1), got: ${{ inputs.version }}"
+            exit 1
+          fi
+
+      - name: ensure tag does not already exist
+        run: |
+          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "::error::tag v${{ inputs.version }} already exists"
+            exit 1
+          fi
+
+      - name: extract release body from CHANGELOG.md
+        id: changelog
+        run: |
+          # Extract the section between "## [<version>]" and the next "## [" header.
+          # If CHANGELOG.md is missing or has no entry for this version, leave the
+          # body empty and fall back to GitHub's auto-generated notes.
+          BODY_PATH=""
+          if [ -f CHANGELOG.md ]; then
+            awk -v ver="## [${{ inputs.version }}]" '
+              index($0, ver) == 1 { found=1; next }
+              found && /^## \[/ { exit }
+              found { print }
+            ' CHANGELOG.md > /tmp/release_body.md
+            if [ -s /tmp/release_body.md ]; then
+              BODY_PATH=/tmp/release_body.md
+            fi
+          fi
+          echo "body_path=$BODY_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: create + push annotated tag
+        run: |
+          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+
+      - name: create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: v${{ inputs.version }}
+          prerelease: ${{ inputs.prerelease }}
+          generate_release_notes: true
+          body_path: ${{ steps.changelog.outputs.body_path }}
