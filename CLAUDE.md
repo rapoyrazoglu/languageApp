@@ -121,22 +121,34 @@ sudo journalctl -u paktly -f
 
 ## Mevcut faz
 
-**Phase 3 — iOS SDK alpha** (devam ediyor). Tamamlanan:
-- Phase 2.5: pack format v1.1 — schema, validator (`vocabLessonWithExamples`
-  test), Manifest+Lesson Swift modelleri, örnek pack 1.1 migration + audio.
-  (Audio-warning kuralı Phase 5'e itildi — backend'de "warning" kanalı yok.)
-- Phase 3a: Codable models (Manifest, Lesson, Block sum type, AICapabilities)
-- Phase 3b: RegistryClient (auth + list + get + downloadInfo + uploadPack +
-  importGitHub, URLProtocol-stub'lı 13 test)
-- iOS CI workflow
+> **Detaylı session state için [HANDOFF.md](HANDOFF.md)'i oku** — şu anda
+> nerdeyiz, hangi commit'ler push edilmemiş, sıradaki adımlar, bilinen
+> bug'lar, build komutları orada toplanmış. CLAUDE.md stabil kararlar
+> içindir; HANDOFF.md "şu anda" cevabı verir.
+
+**Phase 3 — iOS SDK alpha + Phase 3g demo app** (devam ediyor, design
+polish iterasyonunda). Tamamlanan:
+
+- Phase 2.5: pack format v1.1 + 1.2.0 (30-type exercise catalog)
+- Phase 3a: Codable models
+- Phase 3b: RegistryClient (13 test)
+- Phase 3c: PackStore + dep-free pkzip (10 test)
+- Phase 3d: LessonRunner SwiftUI views
+- Phase 3e: 30 exercise type, 10 family view, ExerciseData typed payloads
+- Phase 3f: PaktlyAudioPlayer (AVFoundation + TTS fallback)
+- Phase 3g: **Demo iOS app** — Home (lesson path + 3D nodes + breath
+  animation), Discover (sticky header + featured + grids), Language Detail
+  (tier filter + author avatars), Lesson Runner (custom + chevron nav row),
+  PlacementTest (mini-quiz to skip ahead), Floating tab bar (custom pill).
+  TR-locked at app init.
+- Plus creator CLI (`paktly` binary) + AUTHORING.md + TUTORIAL.md.
 
 Sıradaki:
-- Phase 3c: PackStore (zip extract, SHA256 verify, lokal cache)
-- Phase 3d: LessonRunner SwiftUI views (explanation, vocabulary cards)
-- Phase 3e: Egzersiz tip view'ları (flashcard, multipleChoice, typing,
-  listening, matching, fillInBlank)
-- Phase 3f: Audio + AVSpeechSynthesizer fallback
-- Phase 3g: Demo SwiftUI app (Xcode project, search → indir → çalış)
+- Lesson content design pass (explanation + vocab cards + exercise polish) —
+  Claude Design brief draft halinde
+- Backend per-type schema validation + tier/lessonCount fields
+- Phase 4 Android starter
+- Phase 5-9 sırayla
 
 ## Stil + kalite kuralları
 
