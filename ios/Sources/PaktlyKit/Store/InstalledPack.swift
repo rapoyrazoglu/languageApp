@@ -4,7 +4,13 @@ import Foundation
 /// resolved from this root URL on demand — the manifest is the only file
 /// loaded eagerly so callers can reason about pack metadata without paying
 /// for every lesson's IO.
-public struct InstalledPack: Sendable, Equatable {
+public struct InstalledPack: Sendable, Equatable, Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(packId)
+        hasher.combine(version)
+        hasher.combine(rootURL)
+    }
+
     public let manifest: Manifest
     public let rootURL: URL
     public let installedAt: Date

@@ -36,7 +36,7 @@ public struct TokenResponse: Codable, Sendable {
     }
 }
 
-public struct User: Codable, Sendable, Equatable {
+public struct User: Codable, Sendable, Equatable, Hashable {
     public let id: String
     public let email: String
     public let displayName: String?
@@ -63,7 +63,7 @@ public struct User: Codable, Sendable, Equatable {
 /// One pack as returned by the registry. This is the registry's *catalog* view —
 /// flatter than the on-disk `Manifest` because it indexes denormalized fields
 /// (e.g. `languageCode` instead of nested `language`) for search.
-public struct Pack: Codable, Sendable, Equatable {
+public struct Pack: Codable, Sendable, Equatable, Hashable, Identifiable {
     public let id: String
     public let name: String
     public let description: String?
