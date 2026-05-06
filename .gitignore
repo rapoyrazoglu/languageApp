@@ -1,5 +1,6 @@
 # Build artifacts
 backend/bin/
+backend/paktly
 *.exe
 *.test
 *.out
