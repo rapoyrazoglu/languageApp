@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Paktly · Home spec</title>
+<style>
+  :root {
+    --doc-bg: #FAFAF7;
+    --doc-fg: #1A1A1A;
+    --doc-muted: #6E6E6E;
+    --doc-faint: #A8A8A8;
+    --doc-card: #FFFFFF;
+    --doc-divider: #E8E8E5;
+    --doc-accent: #58CC02;
+    --doc-accent-ink: #3A8A00;
+    --doc-warn: #FFC800;
+    --doc-danger: #FF4B4B;
+    --doc-ok: #58CC02;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--doc-bg);
+    color: var(--doc-fg);
+    font-family: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 56px 32px 120px; }
+
+  /* Header */
+  .doc-header { display: flex; gap: 24px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; margin-bottom: 56px; }
+  .doc-header h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.025em; margin: 0 0 8px; }
+  .doc-header .lede { color: var(--doc-muted); margin: 0; max-width: 60ch; line-height: 1.5; font-size: 15px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 999px;
+    background: #58CC0218; color: var(--doc-accent-ink);
+    font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--doc-accent); }
+
+  /* TOC */
+  .toc {
+    position: sticky; top: 0;
+    background: var(--doc-bg);
+    padding: 16px 0 12px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--doc-divider);
+    z-index: 50;
+  }
+  .toc ul {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .toc a {
+    display: inline-block; padding: 6px 12px;
+    border-radius: 8px;
+    color: var(--doc-muted); text-decoration: none;
+    font-size: 13px; font-weight: 600;
+    border: 1px solid var(--doc-divider);
+    background: var(--doc-card);
+  }
+  .toc a:hover { color: var(--doc-fg); border-color: var(--doc-fg); }
+
+  /* Section */
+  section { margin-bottom: 80px; scroll-margin-top: 80px; }
+  section > .num {
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 12px; font-weight: 600; color: var(--doc-faint);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  section > h2 {
+    font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
+    margin: 0 0 12px;
+  }
+  section > .desc {
+    color: var(--doc-muted); max-width: 70ch; line-height: 1.55;
+    font-size: 15px; margin: 0 0 28px;
+  }
+
+  .card {
+    background: var(--doc-card);
+    border: 1px solid var(--doc-divider);
+    border-radius: 20px;
+    padding: 28px;
+  }
+  .card + .card { margin-top: 16px; }
+  .card h3 { font-size: 17px; font-weight: 700; margin: 0 0 16px; letter-spacing: -0.01em; }
+  .card .hint { color: var(--doc-muted); font-size: 13px; line-height: 1.5; margin-top: 12px; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .row2 { grid-template-columns: 1fr; } }
+
+  /* Token grid */
+  .token-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .token {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    background: var(--doc-bg);
+    border-radius: 10px;
+    border: 1px solid var(--doc-divider);
+  }
+  .token .swatch {
+    width: 28px; height: 28px; border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.06);
+    flex: 0 0 auto;
+  }
+  .token .meta { font-size: 12px; min-width: 0; }
+  .token .name { font-weight: 600; color: var(--doc-fg); }
+  .token .hex { font-family: ui-monospace, "SF Mono", monospace; color: var(--doc-muted); }
+
+  /* Type scale */
+  .type-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 200px;
+    gap: 24px; align-items: baseline;
+    padding: 16px 0;
+    border-top: 1px solid var(--doc-divider);
+  }
+  .type-row:first-child { border-top: none; }
+  .type-name { font-family: ui-monospace, "SF Mono", monospace; font-size: 12px; color: var(--doc-muted); }
+  .type-sample { color: var(--doc-fg); }
+  .type-spec { font-family: ui-monospace, "SF Mono", monospace; font-size: 12px; color: var(--doc-muted); text-align: right; }
+
+  /* Geometry diagram */
+  .geo {
+    display: grid; grid-template-columns: 360px 1fr; gap: 32px; align-items: center;
+  }
+  @media (max-width: 900px) { .geo { grid-template-columns: 1fr; } }
+  .geo-spec { font-family: ui-monospace, "SF Mono", monospace; font-size: 13px; line-height: 1.9; color: var(--doc-muted); }
+  .geo-spec b { color: var(--doc-fg); font-weight: 700; }
+  .geo-spec .group { padding: 12px 16px; background: var(--doc-bg); border-radius: 10px; border: 1px solid var(--doc-divider); margin-bottom: 10px; }
+
+  /* Phone showcases */
+  .phones { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+  .phone-cap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .phone-cap .cap-label { font-size: 13px; font-weight: 600; color: var(--doc-muted); }
+
+  /* JSON pre */
+  pre {
+    background: #0F1A0E;
+    color: #C8E6A0;
+    padding: 20px 24px;
+    border-radius: 14px;
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 12px; line-height: 1.5;
+    overflow-x: auto;
+    margin: 0;
+  }
+  pre .k { color: #93D851; }
+  pre .s { color: #FFC800; }
+  pre .c { color: #6A8055; }
+
+  /* Anti-examples */
+  .anti {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 720px) { .anti { grid-template-columns: 1fr; } }
+  .anti-card {
+    border-radius: 14px;
+    padding: 16px 18px;
+    border: 1px solid;
+  }
+  .anti-no { background: #FFEEEE; border-color: #FFD2D2; }
+  .anti-yes { background: #ECFADD; border-color: #C9EFA0; }
+  .anti-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .anti-no .anti-tag { color: var(--doc-danger); }
+  .anti-yes .anti-tag { color: var(--doc-accent-ink); }
+  .anti-card .what { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .anti-card .why { font-size: 13px; color: var(--doc-muted); line-height: 1.5; }
+
+  /* Animations */
+  @keyframes paktly-breath {
+    0%, 100% { transform: scale(1.0); }
+    50%      { transform: scale(1.04); }
+  }
+  @keyframes paktly-press-loop {
+    0%, 30%   { transform: translateY(0); }
+    40%, 60%  { transform: translateY(8px); }
+    70%, 100% { transform: translateY(0); }
+  }
+
+  /* SVG diagrams */
+  .geo-diag {
+    width: 360px; height: 480px; background: var(--doc-bg);
+    border-radius: 16px; border: 1px solid var(--doc-divider);
+    display: block;
+  }
+
+  /* Sub headers */
+  .sub-h {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--doc-muted);
+    margin: 24px 0 8px;
+  }
+  .sub-h:first-child { margin-top: 0; }
+
+  code.inline {
+    background: #0F1A0E; color: #C8E6A0;
+    padding: 2px 6px; border-radius: 4px;
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 12px;
+  }
+
+  hr.divider { border: none; border-top: 1px solid var(--doc-divider); margin: 28px 0; }
+
+  .timing-bar { display: grid; grid-template-columns: 1fr; gap: 6px; }
+  .timing { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+  .timing .lab { width: 160px; color: var(--doc-muted); font-family: ui-monospace, monospace; font-size: 12px; }
+  .timing .bar { flex: 1; height: 8px; border-radius: 4px; background: var(--doc-divider); position: relative; }
+  .timing .bar > span { display: block; height: 100%; border-radius: 4px; background: var(--doc-accent); }
+  .timing .ms { font-family: ui-monospace, monospace; font-size: 12px; color: var(--doc-fg); width: 64px; text-align: right; }
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <header class="doc-header">
+    <div>
+      <span class="badge"><span class="badge-dot"></span> Phase 2 · final spec</span>
+      <h1 style="margin-top:14px;">Paktly · Home screen spec</h1>
+      <p class="lede">Tek dokümanda kazanan palet, type scale, path geometry, 3D buton fiziği, callout animasyonu, tab bar, empty state, dark mode, JSON token export, anti-examples. SwiftUI implementable, iOS 16+.</p>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:12px;color:var(--doc-muted);font-family:ui-monospace,monospace;">paktly · v0.1 · home</div>
+      <div style="font-size:12px;color:var(--doc-muted);font-family:ui-monospace,monospace;">390×844pt · iOS 16+</div>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <ul>
+      <li><a href="#palette">01 · Palette</a></li>
+      <li><a href="#type">02 · Typography</a></li>
+      <li><a href="#geometry">03 · Path geometry</a></li>
+      <li><a href="#nodes">04 · Node states</a></li>
+      <li><a href="#button3d">05 · 3D button</a></li>
+      <li><a href="#callout">06 · START callout</a></li>
+      <li><a href="#topbar">07 · Top bar</a></li>
+      <li><a href="#header">08 · Pack header</a></li>
+      <li><a href="#tabbar">09 · Tab bar</a></li>
+      <li><a href="#screens">10 · Screens</a></li>
+      <li><a href="#empty">11 · Empty state</a></li>
+      <li><a href="#picker">12 · Pack picker</a></li>
+      <li><a href="#tokens">13 · Tokens (JSON)</a></li>
+      <li><a href="#anti">14 · Anti-examples</a></li>
+    </ul>
+  </nav>
+
+  <!-- 01 PALETTE -->
+  <section id="palette">
+    <div class="num">01</div>
+    <h2>Palette · Paper white + Duo green</h2>
+    <p class="desc">Beyaz/krem zemin (saturasyon az değil — beyaz <i>kasıtlı</i>; ders içerikleri zaten yoğun olacak, home rahat olmalı), tek dominant accent: <code class="inline">#58CC02</code>. Sarı sadece streak için, kırmızı sadece can/hayata kaybında. Mavi-yeşil karışıklığı yok — yeşil tek hâkim.</p>
+
+    <div class="row2">
+      <div class="card">
+        <h3>Light mode</h3>
+        <div class="token-grid" id="tg-light"></div>
+      </div>
+      <div class="card">
+        <h3>Dark mode</h3>
+        <div class="token-grid" id="tg-dark"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Rationale (200 kelime)</h3>
+      <p style="font-size:14px;line-height:1.65;color:var(--doc-fg);max-width:75ch;margin:0;">
+        <b>Beyaz background, doygun yeşil accent.</b> Paktly bir öğrenme aracı — ekranda zaten harf, kelime, çevirme, mikrofon var. Background kırılgan/kremli olursa ders ekranıyla çelişir. Beyaz, ders içeriğinin nefes almasını sağlar; sıkıcı değil çünkü yeşil node'lar canlı.
+        <br><br>
+        <b>Yeşilin tek dominant olması bilinçli.</b> Yeşil = "doğru, ilerle, başardın." Bu duygu home'da her node'da tekrar etmeli. Sarı (streak) ve kırmızı (can) <i>sadece</i> kendi anlamlarında çıkar — accent olarak hiç kullanılmaz. Bu disiplin, kullanıcının renkleri "anlam haritası" olarak öğrenmesini sağlar (gestalt).
+        <br><br>
+        <b>Dark mode'un zemini saf siyah değil</b> (#131F24, hafif teal-aside). Saf siyah OLED'de can sıkar ve yeşil üstüne çıktığında halo efekti yapar. Bu zemin, yeşili patlatır ama yormaz.
+        <br><br>
+        <b>3D shelf renkleri tonal</b>: yeşil node'un shelf'i daha koyu yeşil (#3A8A00), grinin shelf'i daha koyu gri. Renk sistemi kapalı kalır, "Word'den çekilmiş gri shadow" hissi olmaz.
+      </p>
+    </div>
+  </section>
+
+  <!-- 02 TYPOGRAPHY -->
+  <section id="type">
+    <div class="num">02</div>
+    <h2>Typography · SF Pro Rounded</h2>
+    <p class="desc">SF Pro Rounded varsayımı. 6 seviye. Body 15pt değil 16pt — okunabilirlik > densite. Tracking iOS default (heading'lerde -0.02em).</p>
+
+    <div class="card">
+      <div id="type-scale"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>SwiftUI mapping</h3>
+<pre><span class="c">// Custom .rounded modifier on the system fonts</span>
+<span class="k">extension</span> Font {
+  <span class="k">static let</span> pkLargeTitle = Font.system(size: 34, weight: .bold,    design: .rounded)
+  <span class="k">static let</span> pkTitle      = Font.system(size: 28, weight: .bold,    design: .rounded)
+  <span class="k">static let</span> pkTitle2     = Font.system(size: 22, weight: .bold,    design: .rounded)
+  <span class="k">static let</span> pkHeadline   = Font.system(size: 17, weight: .semibold,design: .rounded)
+  <span class="k">static let</span> pkBody       = Font.system(size: 16, weight: .medium,  design: .rounded)
+  <span class="k">static let</span> pkCaption    = Font.system(size: 13, weight: .semibold,design: .rounded)
+}</pre>
+    </div>
+  </section>
+
+  <!-- 03 GEOMETRY -->
+  <section id="geometry">
+    <div class="num">03</div>
+    <h2>Path geometry</h2>
+    <p class="desc">Sen "132pt yetersiz, daha açabilir misin?" dedin — açtım: <b>116pt nodeGap + 84pt çap = 200pt center-to-center vertical pitch</b>, ders ekranında ferah görünür. Swing pattern düz aşağı-yukarı değil, sinüsoid kıvrım: <code class="inline">[-78, -26, 26, 78, 26, -26]</code> — 6'lı döngü, monoton değil.</p>
+
+    <div class="card">
+      <div class="geo">
+        <svg class="geo-diag" viewBox="0 0 360 480">
+          <!-- Centerline -->
+          <line x1="180" y1="20" x2="180" y2="460" stroke="#E8E8E5" stroke-dasharray="2 4"/>
+          <!-- Path -->
+          <path d="M 102 60 C 102 95, 154 95, 154 130 C 154 165, 206 165, 206 200 C 206 235, 258 235, 258 270 C 258 305, 206 305, 206 340 C 206 375, 154 375, 154 410"
+                stroke="#58CC02" stroke-width="3" stroke-dasharray="6 8" fill="none"/>
+          <!-- Nodes -->
+          <g>
+            <circle cx="102" cy="60"  r="20" fill="#58CC02"/>
+            <circle cx="154" cy="130" r="20" fill="#58CC02"/>
+            <circle cx="206" cy="200" r="20" fill="#58CC02"/>
+            <circle cx="258" cy="270" r="22" fill="#FFFFFF" stroke="#58CC02" stroke-width="3"/>
+            <circle cx="206" cy="340" r="20" fill="#FFFFFF" stroke="#D0D0D0" stroke-width="2"/>
+            <circle cx="154" cy="410" r="20" fill="#F0F0F0" stroke="#D0D0D0" stroke-width="2"/>
+          </g>
+          <!-- Labels -->
+          <g font-family="ui-monospace, monospace" font-size="9" fill="#A8A8A8">
+            <text x="80"  y="65" text-anchor="end">x −78</text>
+            <text x="132" y="135" text-anchor="end">x −26</text>
+            <text x="184" y="205" text-anchor="end">x +26</text>
+            <text x="288" y="275" text-anchor="start">x +78</text>
+            <text x="236" y="345" text-anchor="start">x +26</text>
+            <text x="184" y="415" text-anchor="end">x −26</text>
+          </g>
+          <!-- Vertical pitch indicator -->
+          <g stroke="#A8A8A8" stroke-width="1">
+            <line x1="320" y1="60" x2="320" y2="130"/>
+            <line x1="316" y1="60" x2="324" y2="60"/>
+            <line x1="316" y1="130" x2="324" y2="130"/>
+          </g>
+          <text x="328" y="98" font-family="ui-monospace,monospace" font-size="9" fill="#6E6E6E">116 gap</text>
+
+          <!-- Diameter indicator -->
+          <g stroke="#A8A8A8" stroke-width="1">
+            <line x1="64" y1="60" x2="80" y2="60"/>
+            <line x1="64" y1="56" x2="64" y2="64"/>
+            <line x1="80" y1="56" x2="80" y2="64"/>
+          </g>
+          <text x="44" y="48" font-family="ui-monospace,monospace" font-size="9" fill="#6E6E6E">⌀ 84</text>
+        </svg>
+        <div class="geo-spec">
+          <div class="group">
+            <b>Node</b><br>
+            diameter: 84pt<br>
+            shelf depth: 8pt<br>
+          </div>
+          <div class="group">
+            <b>Spacing</b><br>
+            vertical gap (center→center): 200pt<br>
+            ↳ this = 84 (node) + 116 (clear gap)<br>
+          </div>
+          <div class="group">
+            <b>Swing pattern</b><br>
+            x offsets: [−78, −26, +26, +78, +26, −26]<br>
+            cycle: 6 nodes, sine-like<br>
+          </div>
+          <div class="group">
+            <b>Connector</b><br>
+            stroke: 4pt dashed (6 / 8)<br>
+            color: <code class="inline">divider</code> token<br>
+            curve: <b>cubic Bezier</b> (smoother than quadratic)<br>
+            ⚠ NOT solid, NOT gradient — dashed reads as "path not yet walked"<br>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 NODE STATES -->
+  <section id="nodes">
+    <div class="num">04</div>
+    <h2>Node states · 4 variants</h2>
+    <p class="desc">Custom abstract glyphs (SF Symbols değil) — illüstrasyon dilinle uyumlu, stroke ağırlıkları aynı, optical merkezleme manuel.</p>
+
+    <div class="card" style="padding-bottom:8px;">
+      <h3>Light</h3>
+      <div id="states-light"></div>
+    </div>
+    <div class="card" style="margin-top:16px;padding-bottom:8px;background:#131F24;border-color:#37464F;">
+      <h3 style="color:#fff;">Dark</h3>
+      <div id="states-dark"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>State logic</h3>
+      <div class="sub-h">Completed</div>
+      <div style="font-size:14px;color:var(--doc-fg);line-height:1.6;">Yeşil face, koyu yeşil shelf, beyaz tick. Tap → soft "ding" + haptic light, ders detayını re-open eder (review mode).</div>
+      <div class="sub-h">Current</div>
+      <div style="font-size:14px;color:var(--doc-fg);line-height:1.6;">Beyaz face, koyu ink shelf, ink star outline. <b>3pt ring (accent)</b> face etrafında. Sürekli breath animasyonu (1.6s, 1.0→1.04). Tap → lesson modal'ı açar.</div>
+      <div class="sub-h">Upcoming</div>
+      <div style="font-size:14px;color:var(--doc-fg);line-height:1.6;">Beyaz face, soft gri shelf, küçük dot. Tap → "Finish current lesson first" toast (haptic warning).</div>
+      <div class="sub-h">Locked</div>
+      <div style="font-size:14px;color:var(--doc-fg);line-height:1.6;">Muted face (surfaceMuted), aynı gri shelf, lock icon. Opacity tam — sadece renkler dimmed (40% saturation azaltma değil; <b>renk paleti zaten kontrol</b>). Tap → "Unlock by completing previous packs" toast.</div>
+    </div>
+  </section>
+
+  <!-- 05 3D BUTTON -->
+  <section id="button3d">
+    <div class="num">05</div>
+    <h2>3D button physics</h2>
+    <p class="desc">Shelf 8pt (önceki 7pt'den 1pt fazla, tactility daha net). Press = face shelf'le buluşur (translateY 8pt). Curve değil <b>cubic-bezier(0.2, 0.8, 0.2, 1)</b>, 90ms — Apple'ın "spring out" feel'i ama deterministic.</p>
+
+    <div class="card">
+      <h3>Variants — tap to feel the press</h3>
+      <div id="btn-variants"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="row2">
+        <div>
+          <h3>Timing</h3>
+          <div class="timing-bar">
+            <div class="timing"><span class="lab">press in</span><span class="bar"><span style="width:30%"></span></span><span class="ms">90 ms</span></div>
+            <div class="timing"><span class="lab">press out</span><span class="bar"><span style="width:50%"></span></span><span class="ms">160 ms</span></div>
+            <div class="timing"><span class="lab">haptic</span><span class="bar"><span style="width:10%"></span></span><span class="ms">on press</span></div>
+          </div>
+          <p class="hint">Curve: cubic-bezier(0.2, 0.8, 0.2, 1) — fast in, slow out. SwiftUI: <code class="inline">.spring(response: 0.18, dampingFraction: 0.65)</code></p>
+        </div>
+        <div>
+          <h3>SwiftUI sketch</h3>
+<pre><span class="k">struct</span> ShelfButton: <span class="k">View</span> {
+  <span class="k">@State var</span> pressed = <span class="k">false</span>
+  <span class="k">let</span> face: Color
+  <span class="k">let</span> shelf: Color
+  <span class="k">var body</span>: <span class="k">some</span> <span class="k">View</span> {
+    ZStack(alignment: .top) {
+      Capsule().fill(shelf)
+        .offset(y: 8)
+      Capsule().fill(face)
+        .offset(y: pressed ? 8 : 0)
+        .animation(
+          .spring(response: 0.18, dampingFraction: 0.65),
+          value: pressed
+        )
+    }
+    .frame(height: 56)
+  }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 CALLOUT -->
+  <section id="callout">
+    <div class="num">06</div>
+    <h2>"START" callout</h2>
+    <p class="desc">Sallanmayı bıraktık. Yeni: <b>soft breathing</b> — scale 1.0→1.04, 1.6s ease-in-out, sonsuz döngü. Apple Health'in metric card'ları gibi. Daha az invaziv, daha premium hissedilir, accessibility ayarı "reduce motion" ile devre dışı kalır.</p>
+
+    <div class="card">
+      <div style="display:flex;justify-content:center;align-items:center;height:200px;background:var(--doc-bg);border-radius:14px;">
+        <div id="callout-demo"></div>
+      </div>
+      <p class="hint" style="text-align:center;">↑ Bak — fark eder, ama dikkat çalmaz. Sürekli sallanan callout'tan ÇOK farklı.</p>
+    </div>
+
+    <div class="row2" style="margin-top:16px;">
+      <div class="card">
+        <h3>Geometry</h3>
+        <div class="geo-spec">
+          <div class="group">
+            shape: rounded pill + triangle pointer (8pt)<br>
+            width: 86pt<br>
+            height: 36pt<br>
+            label: "START" · 13pt · weight 700 · tracking 0.08em<br>
+            background: <code class="inline">textPrimary</code><br>
+            color: <code class="inline">background</code>
+          </div>
+          <div class="group">
+            offset y: −68pt above current node center<br>
+            ↳ önceki −56pt pack başlığıyla çakışıyordu<br>
+            ↳ yeni: 84/2 + 36/2 + 12 boşluk = 68
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Animation</h3>
+<pre><span class="c">// SwiftUI</span>
+.scaleEffect(animating ? 1.04 : 1.0)
+.animation(
+  .easeInOut(duration: 1.6)
+   .repeatForever(autoreverses: <span class="k">true</span>),
+  value: animating
+)
+.onAppear { animating = <span class="k">true</span> }
+<span class="c">// honor reduce motion</span>
+@Environment(\.accessibilityReduceMotion)
+<span class="k">var</span> reduceMotion: Bool</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 TOPBAR -->
+  <section id="topbar">
+    <div class="num">07</div>
+    <h2>Top bar · language pill + streak</h2>
+    <p class="desc">Önceki sorun: 🇯🇵 + A1 chip + chevron 3 ayrı parça gibi duruyordu. Çözüm: <b>tek pill</b>, içinde flag + native script + level chip + chevron, 40pt yükseklik, surface zemin. Streak ayrı pill (sağda).</p>
+    <div class="card">
+      <div id="topbar-demo" style="position:relative;height:120px;background:var(--doc-bg);border-radius:14px;"></div>
+      <div class="hint">Flag: native script kullanıyoruz (日本語) — emoji bayrak değil. Bayrak emoji'leri renk kalibrasyonsuz ve kültürel olarak bazen sorunlu (Tayvan, Filistin vs); native script politik olarak nötr ve dile saygı.</div>
+    </div>
+  </section>
+
+  <!-- 08 PACK HEADER -->
+  <section id="header">
+    <div class="num">08</div>
+    <h2>Pack header</h2>
+    <p class="desc">Önceki: çok yer kaplıyordu. Yeni kompakt: <b>"Pack 1" caption (11pt) + title (22pt) + meta (13pt)</b>, toplam 60pt yükseklik. START callout ile çakışmaz çünkü ilk node y:220'den başlar.</p>
+    <div class="card">
+      <div id="packhead-demo" style="position:relative;height:120px;padding:16px 24px;background:var(--doc-bg);border-radius:14px;"></div>
+    </div>
+  </section>
+
+  <!-- 09 TAB BAR -->
+  <section id="tabbar">
+    <div class="num">09</div>
+    <h2>Tab bar · custom floating pill</h2>
+    <p class="desc">Native UITabBar değil — custom floating pill, alttan 28pt boşluk, blur 20, surface 93% opaklık. Aktif tab: accentMuted background pill içinde, label expand olur, icon accentInk olur.</p>
+    <div class="card">
+      <div id="tabbar-demo" style="position:relative;height:140px;background:var(--doc-bg);border-radius:14px;"></div>
+    </div>
+  </section>
+
+  <!-- 10 SCREENS -->
+  <section id="screens">
+    <div class="num">10</div>
+    <h2>Screens · light + dark</h2>
+    <p class="desc">9 node path (3 completed, 1 current, 5 upcoming/locked). Path'in kıvrılması bu ekranda net görünüyor.</p>
+    <div class="phones" id="screens-demo"></div>
+  </section>
+
+  <!-- 11 EMPTY -->
+  <section id="empty">
+    <div class="num">11</div>
+    <h2>Empty state</h2>
+    <p class="desc">Hiç pack inili değilken. İllüstrasyon: paket-yığını metaforu (önceki ill. setiyle uyumlu). Headline + body + tek primary CTA.</p>
+    <div class="phones" id="empty-demo"></div>
+  </section>
+
+  <!-- 12 PACK PICKER -->
+  <section id="picker">
+    <div class="num">12</div>
+    <h2>Pack picker · bottom sheet</h2>
+    <p class="desc">"Choose language" sheet — diller liste, native script + İngilizce isim + level chip'leri. For Turkish speakers contextual subtitle.</p>
+    <div class="phones" id="picker-demo"></div>
+  </section>
+
+  <!-- 13 JSON -->
+  <section id="tokens">
+    <div class="num">13</div>
+    <h2>Tokens · JSON export</h2>
+    <p class="desc">Direkt SwiftUI <code class="inline">Color</code> extension'a dökülür. Aşağıyı kopyala.</p>
+    <div class="card">
+      <pre id="json-export"></pre>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h3>SwiftUI Color extension</h3>
+<pre><span class="k">extension</span> Color {
+  <span class="c">// Light + dark adaptive (use UIColor with traitCollection)</span>
+  <span class="k">static let</span> pkBackground   = Color(<span class="s">"pkBackground"</span>)
+  <span class="k">static let</span> pkSurface      = Color(<span class="s">"pkSurface"</span>)
+  <span class="k">static let</span> pkAccent       = Color(<span class="s">"pkAccent"</span>)       <span class="c">// #58CC02 / #58CC02</span>
+  <span class="k">static let</span> pkAccentMuted  = Color(<span class="s">"pkAccentMuted"</span>)  <span class="c">// #D7FFB8 / #1F4A0A</span>
+  <span class="k">static let</span> pkAccentInk    = Color(<span class="s">"pkAccentInk"</span>)    <span class="c">// #3A8A00 / #93D851</span>
+  <span class="k">static let</span> pkTextPrimary  = Color(<span class="s">"pkTextPrimary"</span>)
+  <span class="k">static let</span> pkTextSec      = Color(<span class="s">"pkTextSecondary"</span>)
+  <span class="k">static let</span> pkSuccess      = Color(<span class="s">"pkSuccess"</span>)
+  <span class="k">static let</span> pkWarning      = Color(<span class="s">"pkWarning"</span>)      <span class="c">// streak only</span>
+  <span class="k">static let</span> pkDanger       = Color(<span class="s">"pkDanger"</span>)       <span class="c">// hearts only</span>
+}</pre>
+    </div>
+  </section>
+
+  <!-- 14 ANTI -->
+  <section id="anti">
+    <div class="num">14</div>
+    <h2>Anti-examples · what NOT to do</h2>
+    <p class="desc">Genel his "ölü" diye yazmıştın. İşte ölüye götüren patternler.</p>
+
+    <div class="anti">
+      <div class="anti-card anti-no">
+        <div class="anti-tag">✗ Don't</div>
+        <div class="what">Solid line connector between nodes</div>
+        <div class="why">Yol "yürünmüş" gibi durur, oysa upcoming node'lar henüz yapılmadı. Dashed = "henüz yapılmamış yol".</div>
+      </div>
+      <div class="anti-card anti-yes">
+        <div class="anti-tag">✓ Do</div>
+        <div class="what">Dashed cubic Bezier, divider color</div>
+        <div class="why">Henüz yürümediğin yol = kesik çizgi. Subtle, hayatta.</div>
+      </div>
+      <div class="anti-card anti-no">
+        <div class="anti-tag">✗ Don't</div>
+        <div class="what">Gradient backgrounds (mavi-mor, sarı-turuncu)</div>
+        <div class="why">AI slop signature. Saturasyon yapay görünür, dikkat çalar, premium hissi yok eder.</div>
+      </div>
+      <div class="anti-card anti-yes">
+        <div class="anti-tag">✓ Do</div>
+        <div class="what">Flat solid backgrounds, accent yalnız node + button'da</div>
+        <div class="why">Renk gücünü tek yere odaklamak ona değer kazandırır.</div>
+      </div>
+      <div class="anti-card anti-no">
+        <div class="anti-tag">✗ Don't</div>
+        <div class="what">Sallanan / wobble eden START callout</div>
+        <div class="why">Tantanalı, dikkat sürekli kapar, 30 saniye sonra kullanıcı uyumsuzlaşır. Çocuk uygulaması hissi.</div>
+      </div>
+      <div class="anti-card anti-yes">
+        <div class="anti-tag">✓ Do</div>
+        <div class="what">Soft 1.6s breathing (scale 1.0→1.04)</div>
+        <div class="why">Periferik dikkat sürer, doğrudan dikkat çalmaz. Reduce-motion kapatır.</div>
+      </div>
+      <div class="anti-card anti-no">
+        <div class="anti-tag">✗ Don't</div>
+        <div class="what">SF Symbols karışık aile (filled + outline + multicolor)</div>
+        <div class="why">Görsel kakofoni. Kullanıcı her ikonu yeniden parse eder.</div>
+      </div>
+      <div class="anti-card anti-yes">
+        <div class="anti-tag">✓ Do</div>
+        <div class="what">Custom abstract glyphs, aynı stroke / aynı corner radius</div>
+        <div class="why">Tek görsel dil. Kullanıcı durumu ikonun şeklinden değil, rengin kontrastından okur (daha hızlı).</div>
+      </div>
+      <div class="anti-card anti-no">
+        <div class="anti-tag">✗ Don't</div>
+        <div class="what">3 farklı saturated renk (mavi + yeşil + turuncu)</div>
+        <div class="why">"Mal gibi yıkık" demiştin — paradoxically tam tersi. Çok renk = renk anlamı kaybolur, sahte canlılık.</div>
+      </div>
+      <div class="anti-card anti-yes">
+        <div class="anti-tag">✓ Do</div>
+        <div class="what">1 dominant accent (yeşil), sarı + kırmızı sadece kendi anlamlarında</div>
+        <div class="why">Renk = bilgi kanalı. Yeşil "ilerle", sarı "streak", kırmızı "kayıp". Disiplin = canlılık.</div>
+      </div>
+      <div class="anti-card anti-no">
+        <div class="anti-tag">✗ Don't</div>
+        <div class="what">Native UITabBar (standard iOS chrome)</div>
+        <div class="why">Markaya özel hiçbir hiss bırakmaz, "100. iOS appi" hissi.</div>
+      </div>
+      <div class="anti-card anti-yes">
+        <div class="anti-tag">✓ Do</div>
+        <div class="what">Floating pill tab bar (blur, accent active state)</div>
+        <div class="why">İlk dokunulan unsur tab bar — orada marka konuşur.</div>
+      </div>
+    </div>
+  </section>
+
+  <p style="text-align:center;color:var(--doc-faint);font-size:12px;font-family:ui-monospace,monospace;margin-top:80px;">
+    paktly · home spec · v0.1 · ready for SwiftUI implementation
+  </p>
+
+</div>
+
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="components/palettes.js"></script>
+<script type="text/babel" src="components/ios-frame.jsx"></script>
+<script type="text/babel" src="components/paktly-home.jsx"></script>
+<script type="text/babel" src="components/spec-demos.jsx"></script>
+
+<script type="text/babel">
+  const PAL = window.PALETTES.nature; // "nature" slot now holds the duo green palette
+  const L = PAL.light;
+  const D = PAL.dark;
+
+  const TOKEN_GROUPS = [
+    ['Surface',    ['background','surface','surfaceMuted','divider']],
+    ['Text',       ['textPrimary','textSecondary','textTertiary']],
+    ['Accent',     ['accent','accentMuted','accentInk']],
+    ['Semantic',   ['success','warning','danger']],
+  ];
+
+  function TokenGrid({ tokens }) {
+    return (
+      <>
+        {TOKEN_GROUPS.map(([title, keys]) => (
+          <React.Fragment key={title}>
+            <div style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
+              textTransform: 'uppercase', color: 'var(--doc-faint)',
+              gridColumn: '1 / -1',
+              marginTop: 4,
+            }}>{title}</div>
+            {keys.map(k => (
+              <div key={k} className="token">
+                <div className="swatch" style={{ background: tokens[k] }}/>
+                <div className="meta">
+                  <div className="name">{k}</div>
+                  <div className="hex">{tokens[k].toUpperCase()}</div>
+                </div>
+              </div>
+            ))}
+          </React.Fragment>
+        ))}
+      </>
+    );
+  }
+
+  // Type scale rows
+  const TYPE_SCALE = [
+    { name: 'largeTitle', size: 34, weight: 700, line: '1.1',  track: '-0.02em', sample: 'Hiragana Foundations' },
+    { name: 'title',      size: 28, weight: 700, line: '1.15', track: '-0.02em', sample: 'Choose your language' },
+    { name: 'title2',     size: 22, weight: 700, line: '1.2',  track: '-0.01em', sample: '14 lessons unlocked'    },
+    { name: 'headline',   size: 17, weight: 600, line: '1.3',  track: '0',       sample: 'You are on a 12-day streak'},
+    { name: 'body',       size: 16, weight: 500, line: '1.45', track: '0',       sample: 'Tap a node to start the next lesson.' },
+    { name: 'caption',    size: 13, weight: 600, line: '1.4',  track: '0.02em',  sample: 'Pack 1 · 14 lessons · 1h 20m' },
+  ];
+
+  function TypeRow({ row }) {
+    return (
+      <div className="type-row">
+        <div className="type-name">.{row.name}</div>
+        <div className="type-sample" style={{
+          fontFamily: 'ui-rounded, "SF Pro Rounded", system-ui',
+          fontSize: row.size,
+          fontWeight: row.weight,
+          lineHeight: row.line,
+          letterSpacing: row.track,
+        }}>{row.sample}</div>
+        <div className="type-spec">
+          {row.size}/{row.line} · w{row.weight}<br/>
+          tracking {row.track}
+        </div>
+      </div>
+    );
+  }
+
+  // Mount everything
+  ReactDOM.createRoot(document.getElementById('tg-light')).render(<TokenGrid tokens={L}/>);
+  ReactDOM.createRoot(document.getElementById('tg-dark')).render(<TokenGrid tokens={D}/>);
+  ReactDOM.createRoot(document.getElementById('type-scale')).render(
+    <>{TYPE_SCALE.map(r => <TypeRow key={r.name} row={r}/>)}</>
+  );
+  ReactDOM.createRoot(document.getElementById('states-light')).render(<NodeStateShowcase tokens={L}/>);
+  ReactDOM.createRoot(document.getElementById('states-dark')).render(<NodeStateShowcase tokens={D}/>);
+  ReactDOM.createRoot(document.getElementById('btn-variants')).render(<ButtonVariants tokens={L}/>);
+
+  // Callout demo
+  ReactDOM.createRoot(document.getElementById('callout-demo')).render(
+    <div style={{ position: 'relative', width: 100, height: 50 }}>
+      <StartCallout x={50} y={50} tokens={L}/>
+    </div>
+  );
+
+  // Top bar demo (need a fake background, position absolute is relative to phone, so wrap)
+  ReactDOM.createRoot(document.getElementById('topbar-demo')).render(
+    <div style={{ position: 'absolute', inset: 0 }}>
+      <div style={{ position: 'absolute', top: -36, left: 0, right: 0, height: 120 }}>
+        <TopBar tokens={L}/>
+      </div>
+    </div>
+  );
+
+  // Pack header demo
+  ReactDOM.createRoot(document.getElementById('packhead-demo')).render(
+    <div style={{ position: 'absolute', inset: 0 }}>
+      <div style={{ position: 'absolute', top: -100, left: 0, right: 0, height: 220 }}>
+        <PackHeader tokens={L}/>
+      </div>
+    </div>
+  );
+
+  // Tab bar demo
+  ReactDOM.createRoot(document.getElementById('tabbar-demo')).render(
+    <div style={{ position: 'absolute', inset: 0 }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 140 }}>
+        <TabBar tokens={L}/>
+      </div>
+    </div>
+  );
+
+  // Screens
+  ReactDOM.createRoot(document.getElementById('screens-demo')).render(
+    <>
+      <div className="phone-cap">
+        <IOSDevice width={390} height={844} scale={0.7}>
+          <PaktlyHome tokens={L}/>
+        </IOSDevice>
+        <div className="cap-label">Light · Home (current node = 4)</div>
+      </div>
+      <div className="phone-cap">
+        <IOSDevice width={390} height={844} scale={0.7}>
+          <PaktlyHome tokens={D}/>
+        </IOSDevice>
+        <div className="cap-label">Dark · Home</div>
+      </div>
+    </>
+  );
+
+  // Empty state
+  ReactDOM.createRoot(document.getElementById('empty-demo')).render(
+    <>
+      <div className="phone-cap">
+        <IOSDevice width={390} height={844} scale={0.7}>
+          <EmptyState tokens={L}/>
+        </IOSDevice>
+        <div className="cap-label">Light · Empty state</div>
+      </div>
+      <div className="phone-cap">
+        <IOSDevice width={390} height={844} scale={0.7}>
+          <EmptyState tokens={D}/>
+        </IOSDevice>
+        <div className="cap-label">Dark · Empty state</div>
+      </div>
+    </>
+  );
+
+  // Pack picker
+  ReactDOM.createRoot(document.getElementById('picker-demo')).render(
+    <>
+      <div className="phone-cap">
+        <IOSDevice width={390} height={844} scale={0.7}>
+          <div style={{ position:'absolute', inset: 0, background: L.background }}>
+            <PaktlyHome tokens={L}/>
+            <PackPicker tokens={L}/>
+          </div>
+        </IOSDevice>
+        <div className="cap-label">Light · Pack picker open</div>
+      </div>
+      <div className="phone-cap">
+        <IOSDevice width={390} height={844} scale={0.7}>
+          <div style={{ position:'absolute', inset: 0, background: D.background }}>
+            <PaktlyHome tokens={D}/>
+            <PackPicker tokens={D}/>
+          </div>
+        </IOSDevice>
+        <div className="cap-label">Dark · Pack picker open</div>
+      </div>
+    </>
+  );
+
+  // JSON export
+  const jsonObj = {
+    palette: 'paper-white-duo-green',
+    light: L,
+    dark: D,
+    geometry: { ...window.G },
+  };
+  document.getElementById('json-export').textContent = JSON.stringify(jsonObj, null, 2);
+
+</script>
+
+</body>
+</html>

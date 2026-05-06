@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Paktly · Discover</title>
+<style>
+  :root {
+    --doc-bg: #FAFAF7;
+    --doc-fg: #1A1A1A;
+    --doc-muted: #6E6E6E;
+    --doc-faint: #A8A8A8;
+    --doc-card: #FFFFFF;
+    --doc-divider: #E8E8E5;
+    --doc-accent: #58CC02;
+    --doc-accent-ink: #3A8A00;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--doc-bg);
+    color: var(--doc-fg);
+    font-family: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 56px 32px 96px;
+  }
+
+  header { max-width: 1400px; margin: 0 auto 32px; display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
+  h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.025em; margin: 0 0 8px; }
+  .lede { color: var(--doc-muted); margin: 0; max-width: 60ch; line-height: 1.55; font-size: 15px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 999px;
+    background: #58CC0218; color: var(--doc-accent-ink);
+    font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--doc-accent); }
+
+  .toggle {
+    display: inline-flex; padding: 4px;
+    background: var(--doc-card);
+    border: 1px solid var(--doc-divider);
+    border-radius: 14px;
+  }
+  .toggle button {
+    padding: 8px 16px;
+    background: transparent; border: none;
+    color: var(--doc-muted);
+    font: inherit; font-weight: 600; font-size: 13px;
+    border-radius: 10px; cursor: pointer;
+    transition: all 200ms;
+  }
+  .toggle button.on { background: var(--doc-fg); color: var(--doc-bg); }
+
+  .phones { max-width: 1400px; margin: 0 auto; display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; }
+  .phone-cap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .phone-cap .cap-label { font-size: 13px; font-weight: 600; color: var(--doc-muted); }
+
+  .notes {
+    max-width: 1400px; margin: 48px auto 0;
+    background: var(--doc-card);
+    border: 1px solid var(--doc-divider);
+    border-radius: 16px;
+    padding: 24px 28px;
+  }
+  .notes h3 { margin: 0 0 12px; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+  .notes ul { margin: 0; padding-left: 20px; color: var(--doc-fg); font-size: 14px; line-height: 1.7; }
+  .notes b { color: var(--doc-fg); }
+  .notes code { background: #0F1A0E; color: #C8E6A0; padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, "SF Mono", monospace; font-size: 12px; }
+
+  @keyframes paktly-breath {
+    0%, 100% { transform: scale(1.0); }
+    50%      { transform: scale(1.04); }
+  }
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>
+    <span class="badge"><span class="badge-dot"></span> Phase 3 · Discover</span>
+    <h1 style="margin-top:14px;">Paktly · Discover</h1>
+    <p class="lede">Sticky search + curated sections + mixed grid layout. App Store curation kalitesi, Apple Books sakin estetik. Sosyal proof yok — pure content.</p>
+  </div>
+  <div class="toggle" id="modeToggle">
+    <button data-mode="light" class="on">☀ Light</button>
+    <button data-mode="dark">☾ Dark</button>
+  </div>
+</header>
+
+<div class="phones" id="phones"></div>
+
+<div class="notes">
+  <h3>Layout logic</h3>
+  <ul>
+    <li><b>Sticky header</b> (188pt): blur background, "Discover" title + search bar + horizontal filter pills. Scroll-with-content değil — kullanıcı her zaman aramaya ulaşır.</li>
+    <li><b>Featured card</b> (full-width, ~168pt): tek heroic pack, doygun renkli zemin (haftalık kürasyon). "Preview" CTA pill içinde.</li>
+    <li><b>For Turkish speakers</b> · 2-column grid: kullanıcının native dilinden öğrenebileceği paketler. <code>flag emoji + native script + en + level chip + lessons</code>.</li>
+    <li><b>Popular this week</b> · liste satırları: kompakt, çok pack sığar. Sosyal proof yok dedin — sadece "popüler" başlığıyla işaret veriyoruz, "X kişi çalışıyor" gibi bir şey yok.</li>
+    <li><b>By level</b> · 3×2 grid: A1–C2, her hücrede pack sayısı. Hızlı navigation.</li>
+    <li><b>Tab bar</b> aktif: <code>browse</code>. Home spec'inden gelen pill aynısı.</li>
+    <li>Featured kart hue'ları: <code>#58CC02</code> (accent), grid card'ları için renk kodlu (kırmızı/mavi/sarı/turuncu) — bu kart background'ları sadece <i>visual variety</i>, hiçbiri marka rengi değil. Discover'da renk = pack kimliği, home'da renk = state. Karışmaz.</li>
+  </ul>
+</div>
+
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="components/palettes.js"></script>
+<script type="text/babel" src="components/ios-frame.jsx"></script>
+<script type="text/babel" src="components/paktly-home.jsx"></script>
+<script type="text/babel" src="components/paktly-discover.jsx"></script>
+
+<script type="text/babel">
+  const PAL = window.PALETTES.nature;
+
+  function App() {
+    const [mode, setMode] = React.useState('light');
+    React.useEffect(() => {
+      document.querySelectorAll('#modeToggle button').forEach(b => {
+        b.classList.toggle('on', b.dataset.mode === mode);
+        b.onclick = () => setMode(b.dataset.mode);
+      });
+    }, [mode]);
+
+    return (
+      <>
+        <div className="phone-cap">
+          <IOSDevice width={390} height={844} scale={0.85}>
+            <PaktlyDiscover tokens={PAL[mode]}/>
+          </IOSDevice>
+          <div className="cap-label">{mode === 'light' ? 'Light' : 'Dark'} · Discover · scrollable</div>
+        </div>
+      </>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('phones')).render(<App/>);
+</script>
+
+</body>
+</html>

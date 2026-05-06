@@ -1,0 +1,1150 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Paktly · Lesson Explanation spec</title>
+<style>
+  :root {
+    --doc-bg: #FAFAF7;
+    --doc-fg: #1A1A1A;
+    --doc-muted: #6E6E6E;
+    --doc-faint: #A8A8A8;
+    --doc-card: #FFFFFF;
+    --doc-divider: #E8E8E5;
+    --doc-accent: #58CC02;
+    --doc-accent-ink: #3A8A00;
+    --doc-warn: #FFC800;
+    --doc-danger: #FF4B4B;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--doc-bg); color: var(--doc-fg);
+    font-family: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 56px 32px 120px; }
+
+  .doc-header { display: flex; gap: 24px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; margin-bottom: 56px; }
+  .doc-header h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.025em; margin: 0 0 8px; }
+  .doc-header .lede { color: var(--doc-muted); margin: 0; max-width: 64ch; line-height: 1.55; font-size: 15px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 999px;
+    background: #58CC0218; color: var(--doc-accent-ink);
+    font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--doc-accent); }
+
+  .toc {
+    position: sticky; top: 0;
+    background: var(--doc-bg);
+    padding: 16px 0 12px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--doc-divider);
+    z-index: 50;
+  }
+  .toc ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .toc a {
+    display: inline-block; padding: 6px 12px;
+    border-radius: 8px;
+    color: var(--doc-muted); text-decoration: none;
+    font-size: 13px; font-weight: 600;
+    border: 1px solid var(--doc-divider);
+    background: var(--doc-card);
+  }
+  .toc a:hover { color: var(--doc-fg); border-color: var(--doc-fg); }
+
+  section { margin-bottom: 80px; scroll-margin-top: 80px; }
+  section > .num {
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 12px; font-weight: 600; color: var(--doc-faint);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  section > h2 {
+    font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
+    margin: 0 0 12px;
+  }
+  section > .desc {
+    color: var(--doc-muted); max-width: 70ch; line-height: 1.55;
+    font-size: 15px; margin: 0 0 28px;
+  }
+
+  .card {
+    background: var(--doc-card);
+    border: 1px solid var(--doc-divider);
+    border-radius: 20px;
+    padding: 28px;
+  }
+  .card + .card { margin-top: 16px; }
+  .card h3 { font-size: 17px; font-weight: 700; margin: 0 0 16px; letter-spacing: -0.01em; }
+  .card .hint { color: var(--doc-muted); font-size: 13px; line-height: 1.5; margin-top: 12px; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .row2 { grid-template-columns: 1fr; } }
+
+  .token-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .token { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--doc-bg); border-radius: 10px; border: 1px solid var(--doc-divider); }
+  .token .swatch { width: 28px; height: 28px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.06); flex: 0 0 auto; }
+  .token .meta { font-size: 12px; min-width: 0; }
+  .token .name { font-weight: 600; color: var(--doc-fg); }
+  .token .hex { font-family: ui-monospace, "SF Mono", monospace; color: var(--doc-muted); }
+
+  .type-row {
+    display: grid; grid-template-columns: 140px 1fr 200px;
+    gap: 24px; align-items: baseline;
+    padding: 16px 0; border-top: 1px solid var(--doc-divider);
+  }
+  .type-row:first-child { border-top: none; }
+  .type-name { font-family: ui-monospace, "SF Mono", monospace; font-size: 12px; color: var(--doc-muted); }
+  .type-sample { color: var(--doc-fg); }
+  .type-spec { font-family: ui-monospace, "SF Mono", monospace; font-size: 12px; color: var(--doc-muted); text-align: right; }
+
+  .geo { display: grid; grid-template-columns: 360px 1fr; gap: 32px; align-items: center; }
+  @media (max-width: 900px) { .geo { grid-template-columns: 1fr; } }
+  .geo-spec { font-family: ui-monospace, "SF Mono", monospace; font-size: 13px; line-height: 1.9; color: var(--doc-muted); }
+  .geo-spec b { color: var(--doc-fg); font-weight: 700; }
+  .geo-spec .group { padding: 12px 16px; background: var(--doc-bg); border-radius: 10px; border: 1px solid var(--doc-divider); margin-bottom: 10px; }
+  .geo-diag { width: 360px; height: 480px; background: var(--doc-bg); border-radius: 16px; border: 1px solid var(--doc-divider); display: block; }
+
+  .phones { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+  .phone-cap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .phone-cap .cap-label { font-size: 13px; font-weight: 600; color: var(--doc-muted); max-width: 280px; text-align: center; line-height: 1.4; }
+  .phone-cap .cap-label b { color: var(--doc-fg); display: block; font-size: 14px; margin-bottom: 2px; }
+
+  pre {
+    background: #0F1A0E; color: #C8E6A0;
+    padding: 20px 24px; border-radius: 14px;
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 12px; line-height: 1.5;
+    overflow-x: auto; margin: 0;
+  }
+  pre .k { color: #93D851; } pre .s { color: #FFC800; } pre .c { color: #6A8055; }
+
+  .anti { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .anti { grid-template-columns: 1fr; } }
+  .anti-card { border-radius: 14px; padding: 16px 18px; border: 1px solid; }
+  .anti-no { background: #FFEEEE; border-color: #FFD2D2; }
+  .anti-yes { background: #ECFADD; border-color: #C9EFA0; }
+  .anti-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .anti-no .anti-tag { color: var(--doc-danger); }
+  .anti-yes .anti-tag { color: var(--doc-accent-ink); }
+  .anti-card .what { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .anti-card .why { font-size: 13px; color: var(--doc-muted); line-height: 1.5; }
+
+  .sub-h { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--doc-muted); margin: 24px 0 8px; }
+  .sub-h:first-child { margin-top: 0; }
+
+  code.inline {
+    background: #0F1A0E; color: #C8E6A0;
+    padding: 2px 6px; border-radius: 4px;
+    font-family: ui-monospace, "SF Mono", monospace; font-size: 12px;
+  }
+
+  .timing-bar { display: grid; grid-template-columns: 1fr; gap: 6px; }
+  .timing { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+  .timing .lab { width: 160px; color: var(--doc-muted); font-family: ui-monospace, monospace; font-size: 12px; }
+  .timing .bar { flex: 1; height: 8px; border-radius: 4px; background: var(--doc-divider); position: relative; }
+  .timing .bar > span { display: block; height: 100%; border-radius: 4px; background: var(--doc-accent); }
+  .timing .ms { font-family: ui-monospace, monospace; font-size: 12px; color: var(--doc-fg); width: 64px; text-align: right; }
+
+  /* State machine table */
+  .smt { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .smt th, .smt td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--doc-divider); vertical-align: top; }
+  .smt th { font-weight: 700; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--doc-muted); }
+  .smt td code { font-family: ui-monospace, monospace; font-size: 12px; color: var(--doc-fg); }
+  .smt .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .smt .pill.ok { background: #D7FFB8; color: #3A8A00; }
+  .smt .pill.no { background: #FFE0E0; color: #C53D3D; }
+  .smt .pill.zz { background: var(--doc-divider); color: var(--doc-muted); }
+
+  .flow {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+    margin-bottom: 8px;
+  }
+  @media (max-width: 900px) { .flow { grid-template-columns: 1fr 1fr; } }
+  .flow-step {
+    background: var(--doc-bg);
+    border: 1px solid var(--doc-divider);
+    border-radius: 14px;
+    padding: 14px 16px;
+    position: relative;
+  }
+  .flow-step .ix {
+    font-family: ui-monospace, monospace;
+    font-size: 11px; color: var(--doc-faint); letter-spacing: 0.06em;
+  }
+  .flow-step h4 { margin: 4px 0 6px; font-size: 14px; font-weight: 700; }
+  .flow-step p { margin: 0; font-size: 12px; color: var(--doc-muted); line-height: 1.5; }
+  .flow-step .role {
+    margin-top: 8px; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--doc-accent-ink);
+  }
+
+  /* Copy table */
+  .copytbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .copytbl th, .copytbl td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--doc-divider); }
+  .copytbl th { font-weight: 700; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--doc-muted); }
+  .copytbl td b { color: var(--doc-fg); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-header">
+    <div>
+      <span class="badge"><span class="badge-dot"></span> Phase 3 · final spec</span>
+      <h1 style="margin-top:14px;">Paktly · Lesson Explanation spec</h1>
+      <p class="lede">5 sayfalı detaylı konu anlatımı flow'unun production-ready spec'i. Konu örneği: Japonca <code class="inline">は (wa)</code> vs <code class="inline">が (ga)</code>. Page chrome, dot pagination, def cards, example breakdown, mini-quiz state machine, summary, bottom CTA, light + dark, pedagojik prensipler, copy guidelines, anti-examples.</p>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:12px;color:var(--doc-muted);font-family:ui-monospace,monospace;">paktly · v0.1 · lesson explanation</div>
+      <div style="font-size:12px;color:var(--doc-muted);font-family:ui-monospace,monospace;">390×844pt · iOS 16+</div>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <ul>
+      <li><a href="#flow">01 · Flow mimarisi</a></li>
+      <li><a href="#chrome">02 · Page chrome</a></li>
+      <li><a href="#hook">03 · Page 1 · Hook</a></li>
+      <li><a href="#intro">04 · Page 2 · Tanıtım</a></li>
+      <li><a href="#comparison">05 · Page 3 · Karşılaştırma</a></li>
+      <li><a href="#quiz">06 · Page 4 · Mini-quiz</a></li>
+      <li><a href="#summary">07 · Page 5 · Özet</a></li>
+      <li><a href="#cta">08 · Bottom CTA</a></li>
+      <li><a href="#type">09 · Type scale</a></li>
+      <li><a href="#palette">10 · Color tokens</a></li>
+      <li><a href="#pedagogy">11 · Pedagojik prensipler</a></li>
+      <li><a href="#copy">12 · Copy guidelines</a></li>
+      <li><a href="#screens">13 · Screens · light + dark</a></li>
+      <li><a href="#tokens">14 · Tokens (JSON)</a></li>
+      <li><a href="#anti">15 · Anti-examples</a></li>
+    </ul>
+  </nav>
+
+  <!-- 01 FLOW -->
+  <section id="flow">
+    <div class="num">01</div>
+    <h2>Flow mimarisi · 5 sayfa, ~3 dakika</h2>
+    <p class="desc">Tek sayfa "concept primer" değil. Konu hissedilerek öğrenilsin diye <b>5 atomic sayfa</b>: her biri tek bir bilişsel görevi yapar. Mini-quiz ortada, <i>özetten önce</i> — kullanıcının hâlâ taze öğrenme bağlamındayken kontrol etmesi için.</p>
+
+    <div class="card">
+      <div class="flow">
+        <div class="flow-step">
+          <div class="ix">01</div><h4>Hook</h4>
+          <p>İki partikülü büyük gösterim. "Neden öğreniyorsun" cevabı.</p>
+          <div class="role">Motivation prime</div>
+        </div>
+        <div class="flow-step">
+          <div class="ix">02</div><h4>Tanıtım</h4>
+          <p>Konu vs özne tanımları. Tap-to-reveal kartları + 1 püf nokta.</p>
+          <div class="role">Schema build</div>
+        </div>
+        <div class="flow-step">
+          <div class="ix">03</div><h4>Karşılaştırma</h4>
+          <p>Aynı cümle, iki partikül. Word-by-word breakdown + yorum.</p>
+          <div class="role">Pattern reveal</div>
+        </div>
+        <div class="flow-step">
+          <div class="ix">04</div><h4>Mini-quiz</h4>
+          <p>Tek soru. Doğru/yanlış feedback ile pekiştir.</p>
+          <div class="role">Active recall</div>
+        </div>
+        <div class="flow-step">
+          <div class="ix">05</div><h4>Özet</h4>
+          <p>Öğrenilenleri 3 madde olarak sabitle. CTA: alıştırma.</p>
+          <div class="role">Consolidation</div>
+        </div>
+      </div>
+      <p class="hint">
+        <b>Sıralamanın gerekçesi:</b> Hook (limbic prime) → Tanıtım (semantic schema) → Karşılaştırma (örüntü) → Quiz (retrieval, hâlâ taze) → Özet (chunk to memory). Quiz'i en sona koyarsak retrieval boş olur — özet quiz'in cevabını verir, kullanıcı kendi düşünmemiş olur.
+      </p>
+    </div>
+  </section>
+
+  <!-- 02 CHROME -->
+  <section id="chrome">
+    <div class="num">02</div>
+    <h2>Page chrome · back · dots · skip</h2>
+    <p class="desc">Tek satır, 56pt. Sol: back chevron (history). Orta: 5 dot pagination. Sağ: "Atla" text button. Tab bar yok — explanation modal flow, full-screen.</p>
+
+    <div class="card">
+      <div class="geo">
+        <div id="chrome-demo" style="position:relative;width:360px;height:120px;background:var(--doc-bg);border-radius:14px;overflow:hidden;"></div>
+        <div class="geo-spec">
+          <div class="group">
+            <b>Container</b><br>
+            height: 56pt<br>
+            padding: 0 16pt<br>
+            layout: flex, gap 12pt, align center
+          </div>
+          <div class="group">
+            <b>Back</b><br>
+            36×36pt tappable<br>
+            chevron: 20pt, weight 2.4, rounded caps<br>
+            color: textSecondary
+          </div>
+          <div class="group">
+            <b>Dots</b><br>
+            5 nodes · gap 6pt · centered flex 1<br>
+            inactive: 8×8 · divider<br>
+            past: 8×8 · accentInk<br>
+            current: 22×8 (extends right) · accent
+          </div>
+          <div class="group">
+            <b>Skip</b><br>
+            "Atla" · 13pt · semibold · textTertiary<br>
+            36pt height · 12pt padding · transparent
+          </div>
+          <div class="group">
+            <b>Dot transition</b><br>
+            240ms · cubic-bezier(.2,.8,.2,1)<br>
+            width + color simultaneous
+          </div>
+        </div>
+      </div>
+      <p class="hint">Skip "Atla" zorlamasız: lesson explanation'ı geçen kullanıcı doğrudan alıştırmaya gider. Yine de telemetri toplanır (skipped_at_page).</p>
+    </div>
+  </section>
+
+  <!-- 03 HOOK -->
+  <section id="hook">
+    <div class="num">03</div>
+    <h2>Page 1 · Hook</h2>
+    <p class="desc">İlk 4 saniyede kullanıcı şunu anlamalı: "Bu konu beni etkiliyor." Tek başlık, iki büyük partikül glyph'i, ve tek bir motivasyon paragrafı. Asla 2'den fazla cümle.</p>
+
+    <div class="row2">
+      <div class="card">
+        <h3>Anatomy</h3>
+        <table class="copytbl">
+          <thead><tr><th>Slot</th><th>Spec</th></tr></thead>
+          <tbody>
+            <tr><td><b>Eyebrow</b></td><td>11pt · bold · 0.08em · UPPER · accentInk · "Konu · Partikül"</td></tr>
+            <tr><td><b>Headline (h1)</b></td><td>30pt · bold · -0.015em · 1.15 line · textPrimary · text-wrap: balance</td></tr>
+            <tr><td><b>Glyph card</b></td><td>full-width · 180pt h · radius 22 · surfaceMuted · 1pt divider border</td></tr>
+            <tr><td><b>Glyph (left)</b></td><td>72pt · bold · textPrimary · letter-spacing -0.02em</td></tr>
+            <tr><td><b>Glyph (right)</b></td><td>72pt · bold · accent · same metrics</td></tr>
+            <tr><td><b>Glyph caption</b></td><td>12pt · bold · 0.08em · UPPER · textTertiary / accentInk</td></tr>
+            <tr><td><b>Glyph divider</b></td><td>1pt × 90pt · vertical · divider</td></tr>
+            <tr><td><b>Body</b></td><td>17pt · medium · 1.55 line · textSecondary · max 2 sentences</td></tr>
+            <tr><td><b>Footer rule</b></td><td>"~3 dakika · 5 sayfa" · 13pt · medium · textTertiary · with hairlines</td></tr>
+            <tr><td><b>CTA</b></td><td>"HADİ BAŞLAYALIM" · accent · 3D shelf</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Behavior</h3>
+        <div class="sub-h">Entry</div>
+        <div style="font-size:14px;line-height:1.6;">Page transition: slide-in from right, 280ms cubic-bezier(.2,.8,.2,1). Glyph card scales from 0.96 → 1.0 (200ms delay).</div>
+        <div class="sub-h">Audio cue (optional)</div>
+        <div style="font-size:14px;line-height:1.6;">Glyph kartları tappable. Tap → particle pronunciation (TTS). Yarısı "wa" değil "ha" diye duyulur — bu konu kafa karışıklığı önemlidir, açıklamada notu var.</div>
+        <div class="sub-h">Reduce motion</div>
+        <div style="font-size:14px;line-height:1.6;">Slide → fade. Glyph scale yok.</div>
+        <div class="sub-h">Skipping</div>
+        <div style="font-size:14px;line-height:1.6;">"Atla" → confirm sheet: "Açıklamayı atla, doğrudan alıştırmaya geç?" CTA: TAMAM / VAZGEÇ.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 INTRO -->
+  <section id="intro">
+    <div class="num">04</div>
+    <h2>Page 2 · Tanıtım · DefCard pattern</h2>
+    <p class="desc">İki tanım kartı + bir footnote. DefCard, ders boyunca tekrarlanacak temel pattern: glyph + label + body + speaker.</p>
+
+    <div class="card">
+      <h3>DefCard anatomy</h3>
+      <div class="geo">
+        <svg class="geo-diag" viewBox="0 0 360 480" style="height:280px;">
+          <!-- Card frame -->
+          <rect x="20" y="40" width="320" height="120" rx="16" fill="#FFFFFF" stroke="#E8E8E5"/>
+          <!-- Glyph box -->
+          <rect x="38" y="58" width="56" height="56" rx="16" fill="#D7FFB8"/>
+          <text x="66" y="98" text-anchor="middle" font-family="ui-rounded,system-ui" font-weight="700" font-size="32" fill="#58CC02">が</text>
+          <!-- Eyebrow -->
+          <text x="108" y="74" font-family="ui-monospace,monospace" font-size="9" fill="#3A8A00" font-weight="700" letter-spacing="1.2">GA</text>
+          <!-- Label -->
+          <text x="108" y="96" font-family="ui-rounded,system-ui" font-weight="600" font-size="14" fill="#1A1A1A">Özne — kim/ne yapıyor</text>
+          <!-- Speaker btn -->
+          <circle cx="316" cy="86" r="14" fill="#D7FFB8"/>
+          <path d="M310 81 H313 L317 78 V94 L313 91 H310 Z" fill="#58CC02"/>
+          <!-- Body -->
+          <line x1="38" y1="124" x2="324" y2="124" stroke="#E8E8E5" stroke-dasharray="2 4"/>
+          <text x="38" y="144" font-family="ui-rounded,system-ui" font-size="11" fill="#6E6E6E">Eylemi yapan kişiyi/şeyi gösterir.</text>
+          <text x="38" y="156" font-family="ui-rounded,system-ui" font-size="11" fill="#6E6E6E">Yeni bilgi getirir.</text>
+
+          <!-- Annotations -->
+          <g font-family="ui-monospace,monospace" font-size="9" fill="#A8A8A8">
+            <line x1="20" y1="200" x2="38" y2="180" stroke="#A8A8A8" stroke-width="1"/>
+            <text x="0" y="210">padding 18</text>
+            <line x1="38" y1="220" x2="38" y2="58" stroke="#A8A8A8" stroke-dasharray="1 3"/>
+            <text x="44" y="232">glyph 56×56 · radius 16</text>
+            <line x1="172" y1="380" x2="316" y2="100" stroke="#A8A8A8" stroke-width="0.5" stroke-dasharray="1 3"/>
+            <text x="40" y="392">speaker btn 32×32 · accentMuted</text>
+            <text x="40" y="406">tap → TTS · 16pt icon</text>
+            <text x="40" y="430">card radius 16 · 1pt divider border</text>
+            <text x="40" y="444">accent variant: glyph box accentMuted, glyph accent, eyebrow accentInk</text>
+          </g>
+        </svg>
+        <div class="geo-spec">
+          <div class="group">
+            <b>Card</b><br>
+            radius: 16pt · padding: 16/18<br>
+            background: surface · 1pt divider border
+          </div>
+          <div class="group">
+            <b>Glyph box</b><br>
+            56×56pt · radius 16<br>
+            neutral: surfaceMuted bg, textPrimary glyph<br>
+            accent: accentMuted bg, accent glyph, accentInk eyebrow
+          </div>
+          <div class="group">
+            <b>Header row</b><br>
+            flex · gap 14 · align center · marginBottom 8<br>
+            eyebrow (11pt bold · upper · 0.08em)<br>
+            label (16pt semi · -0.005em)
+          </div>
+          <div class="group">
+            <b>Speaker</b><br>
+            32×32 · radius 16 · accentMuted bg<br>
+            16pt icon · accent fill
+          </div>
+          <div class="group">
+            <b>Body</b><br>
+            14pt medium · 1.5 line · textSecondary
+          </div>
+          <div class="group">
+            <b>Stack between cards</b><br>
+            marginBottom 12pt
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Footnote tip · "i" callout</h3>
+      <div class="geo-spec">
+        <div class="group">
+          accentMuted bg · radius 14 · padding 14/16<br>
+          flex · gap 12 · align flex-start<br>
+          icon: 22×22 circle · accent bg · "i" 13pt bold white · marginTop 1<br>
+          body: 14pt medium · 1.5 line · accentInk · text-wrap pretty<br>
+          <b>"Püf nokta:"</b> bold prefix is required — distinguishes from regular content
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 COMPARISON -->
+  <section id="comparison">
+    <div class="num">05</div>
+    <h2>Page 3 · Karşılaştırma · ExampleCard</h2>
+    <p class="desc">Aynı cümle iki partikülle yazılır. Anlamın <i>nasıl</i> değiştiğini parça parça gösteren breakdown sistemi. İkinci kart "highlight" varyantı: <code class="inline">3pt accentMuted ring</code> + <code class="inline">accent55 border</code> ile vurgu.</p>
+
+    <div class="card">
+      <h3>Parts breakdown system</h3>
+      <p style="margin:0 0 16px;font-size:14px;color:var(--doc-muted);line-height:1.55;">
+        Her cümle yatay flex-wrap olarak parçalara ayrılır. Her parça: kelime (14pt semi) + meaning chip (9pt bold UPPER 0.05em). Partikül parçaları renklendirilir:
+      </p>
+      <table class="smt">
+        <thead><tr><th>Variant</th><th>Background</th><th>Token color</th><th>Eyebrow color</th><th>Anlamı</th></tr></thead>
+        <tbody>
+          <tr><td><code>accent: false</code></td><td>surfaceMuted</td><td>textPrimary</td><td>textTertiary</td><td>"Konu" partikülü (は) — nötr vurgu</td></tr>
+          <tr><td><code>accent: true</code></td><td>accentMuted</td><td>accentInk</td><td>textTertiary</td><td>"Özne" partikülü (が) — yeşil vurgu</td></tr>
+          <tr><td><code>accent: undefined</code></td><td>transparent</td><td>textPrimary</td><td>textTertiary</td><td>İçerik kelimesi — vurgusuz</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Highlight pattern</h3>
+      <div class="geo-spec">
+        <div class="group">
+          Standard: 1pt divider border, no shadow<br>
+          Highlight: 1pt <code class="inline">accent55</code> border + <code class="inline">box-shadow: 0 0 0 3px accentMuted</code><br>
+          ↳ Halo, mevcut sayfayı bölmeden "buna bak" diyor.
+        </div>
+        <div class="group">
+          <b>Stacking rule:</b> en fazla 2 ExampleCard yan yana, ikincisi highlight.<br>
+          3+ cümle gerekirse paginate veya başka pattern (şu sürümde değil).
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Speaker behavior</h3>
+      <p style="font-size:14px;line-height:1.6;margin:0;">Her ExampleCard'in sağ üstünde 32×32 speaker. Tap → TTS, parts breakdown'da partikül parçası kısa pulse animasyonuyla işaretlenir (200ms scale 1.0→1.06→1.0). Bu "duyduğun şey burası" mapping'i.</p>
+    </div>
+  </section>
+
+  <!-- 06 QUIZ -->
+  <section id="quiz">
+    <div class="num">06</div>
+    <h2>Page 4 · Mini-quiz · state machine</h2>
+    <p class="desc">3 state: <code class="inline">unanswered</code>, <code class="inline">correct</code>, <code class="inline">wrong</code>. Question prompt, fill-in-blank cümle, 2 büyük seçenek, alt CTA durumla değişir.</p>
+
+    <div class="card">
+      <h3>State table</h3>
+      <table class="smt">
+        <thead>
+          <tr>
+            <th>State</th>
+            <th>Blank box</th>
+            <th>Choice (correct)</th>
+            <th>Choice (wrong)</th>
+            <th>Feedback strip</th>
+            <th>CTA</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="pill zz">unanswered</span></td>
+            <td>surfaceMuted bg · dashed textTertiary border · "___" placeholder</td>
+            <td>surface · 2pt divider</td>
+            <td>surface · 2pt divider</td>
+            <td>—</td>
+            <td><b>KONTROL ET</b> · accent · disabled (no choice yet)</td>
+          </tr>
+          <tr>
+            <td><span class="pill ok">correct</span></td>
+            <td>accentMuted bg · dashed accent · accent glyph "が"</td>
+            <td>accentMuted bg · 2pt accent · check badge</td>
+            <td>surface · 2pt divider</td>
+            <td>accentMuted bg · accentInk text · "Doğru! …"</td>
+            <td><b>DEVAM</b> · accent</td>
+          </tr>
+          <tr>
+            <td><span class="pill no">wrong</span></td>
+            <td>danger22 bg · dashed danger · danger glyph "は"</td>
+            <td>accentMuted bg · 2pt accent · check badge (reveals correct)</td>
+            <td>danger15 bg · 2pt danger</td>
+            <td>danger15 bg · danger text · "Tekrar düşün. …"</td>
+            <td><b>TEKRAR DENE</b> · neutral (surface · 1pt divider)</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="hint">
+        <b>Key invariant:</b> wrong state'de bile doğru cevap accent ile <i>her zaman</i> görünür (check badge'iyle). Kullanıcı yanlışsa yanlışı + doğruyu aynı ekranda görür → tek bilişsel snapshot. Spoiler değil; reveal.
+      </p>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Choice anatomy</h3>
+      <div class="geo-spec">
+        <div class="group">
+          <b>Container</b><br>
+          full-width button · radius 14 · padding 14/18<br>
+          2pt border (color reflects state)<br>
+          flex · gap 14 · align center
+        </div>
+        <div class="group">
+          <b>Glyph box</b><br>
+          44×44pt · radius 12<br>
+          unanswered: surfaceMuted · textPrimary glyph<br>
+          correct/wrong-fill: tinted bg · WHITE glyph (#FFFFFF)
+        </div>
+        <div class="group">
+          <b>Glyph type</b><br>
+          26pt bold rounded · line-height 1
+        </div>
+        <div class="group">
+          <b>Label stack</b><br>
+          line 1: "は (wa)" · 16pt semi · textPrimary<br>
+          line 2: "konu" / "özne" · 12pt medium · textTertiary
+        </div>
+        <div class="group">
+          <b>Check badge</b><br>
+          28×28 circle · accent bg · 16pt check (white)<br>
+          appears only on correct in revealed states
+        </div>
+        <div class="group">
+          <b>Tap targets</b><br>
+          minimum 60pt total height (Apple HIG)
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Timing &amp; haptics</h3>
+      <div class="row2">
+        <div>
+          <div class="timing-bar">
+            <div class="timing"><span class="lab">choice press</span><span class="bar"><span style="width:30%"></span></span><span class="ms">90 ms</span></div>
+            <div class="timing"><span class="lab">reveal anim</span><span class="bar"><span style="width:60%"></span></span><span class="ms">220 ms</span></div>
+            <div class="timing"><span class="lab">feedback fade-in</span><span class="bar"><span style="width:50%"></span></span><span class="ms">180 ms</span></div>
+          </div>
+          <p class="hint">Reveal: blank box dashed border colors transition; correct choice border + bg crossfade. cubic-bezier(.2,.8,.2,1).</p>
+        </div>
+        <div>
+          <div style="font-size:13px;line-height:1.7;">
+            <b>Haptics</b><br>
+            correct → <code class="inline">.notificationOccurred(.success)</code><br>
+            wrong → <code class="inline">.notificationOccurred(.warning)</code><br>
+            <i>not</i> .error — yanlış cezalandırılmaz, hatırlatılır.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 SUMMARY -->
+  <section id="summary">
+    <div class="num">07</div>
+    <h2>Page 5 · Özet</h2>
+    <p class="desc">3 maddelik öğrenilen-listesi. Her madde aynı pattern: glyph rozeti + (translit) + tek cümle. Alt: "Konu tamamlandı" rozeti ortalı. CTA: "ALIŞTIRMAYA GEÇ".</p>
+
+    <div class="row2">
+      <div class="card">
+        <h3>Item anatomy</h3>
+        <div class="geo-spec">
+          <div class="group">
+            <b>Card</b><br>
+            radius 16 · padding 16/16/16/14 · flex gap 14<br>
+            surface · 1pt divider
+          </div>
+          <div class="group">
+            <b>Glyph rozeti</b><br>
+            48×48 · radius 14 · accentMuted bg<br>
+            glyph: 24pt bold · accent
+          </div>
+          <div class="group">
+            <b>Body stack</b><br>
+            translit eyebrow (11pt bold UPPER 0.08em · textTertiary)<br>
+            sentence (14pt medium · 1.45 line · textPrimary)
+          </div>
+          <div class="group">
+            <b>Stack gap</b><br>
+            12pt
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Completion rozeti</h3>
+        <div class="geo-spec">
+          <div class="group">
+            inline-flex pill · radius 999 · padding 8/14<br>
+            accentMuted bg · accentInk text<br>
+            13pt bold · 0.04em UPPER<br>
+            check icon: 16×16 accent circle · 11pt white check
+          </div>
+          <div class="group">
+            <b>Position</b><br>
+            margin-top auto (sticks to viewport bottom area)<br>
+            margin-bottom 16 · text-align center
+          </div>
+        </div>
+        <p class="hint">
+          Bu rozet sadece görsel ödül. <b>Asıl XP/streak</b> alıştırma sonrası verilir, açıklama tek başına XP getirmez (ezberin değil, anlamanın ödülü).
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 CTA -->
+  <section id="cta">
+    <div class="num">08</div>
+    <h2>Bottom CTA · 3D shelf, 3 variant</h2>
+    <p class="desc">Home spec'iyle <b>aynı fizik</b>: 8pt shelf, 90ms press-in, cubic-bezier(.2,.8,.2,1). Lesson explanation'a özel: 3 ton (accent / neutral / disabled) state'e göre değişir.</p>
+
+    <div class="card">
+      <table class="smt">
+        <thead><tr><th>Tone</th><th>Face</th><th>Shelf</th><th>Ink</th><th>Border</th><th>Kullanım</th></tr></thead>
+        <tbody>
+          <tr><td><b>accent</b></td><td>accent (#58CC02)</td><td>accentInk (#3A8A00)</td><td>#FFFFFF</td><td>none</td><td>Ana ilerleme: HADİ BAŞLAYALIM, DEVAM, ANLADIM, ALIŞTIRMAYA GEÇ</td></tr>
+          <tr><td><b>neutral</b></td><td>surface</td><td>divider</td><td>textPrimary</td><td>1pt divider</td><td>İkincil: TEKRAR DENE (wrong state)</td></tr>
+          <tr><td><b>disabled</b></td><td>surfaceMuted</td><td>divider · 60% opacity</td><td>textTertiary</td><td>none</td><td>Quiz unanswered: KONTROL ET</td></tr>
+        </tbody>
+      </table>
+      <p class="hint">
+        <b>Neden TEKRAR DENE neutral?</b> Yanlış cevap ekranında accent CTA "ödül" hissi verir — yanlış pekiştirilir. Neutral ton kullanıcıya "ana akış değil, geri dön" diyor. Doğru cevap → accent (ilerle); yanlış → neutral (yeniden dene).
+      </p>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Geometry</h3>
+      <div class="geo-spec">
+        <div class="group">
+          container: padding 12/20/28 · flex-shrink 0<br>
+          inner: relative · height 60<br>
+          shelf: absolute · top 8 · radius 16<br>
+          face: absolute · top 0 · height 52 · radius 16
+        </div>
+        <div class="group">
+          label: 15pt bold · 0.08em letter-spacing<br>
+          family: ui-rounded
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 09 TYPE -->
+  <section id="type">
+    <div class="num">09</div>
+    <h2>Type scale · lesson content</h2>
+    <p class="desc">Spec-Home'daki 6 seviyenin üstüne, ders içeriğine özgü 3 yeni atomic rol: <code class="inline">.glyphHero</code> (Hook 72pt), <code class="inline">.glyphMd</code> (Choice 26pt), <code class="inline">.metaChip</code> (parts breakdown 9pt).</p>
+
+    <div class="card">
+      <div id="type-scale"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Japanese-aware font stack</h3>
+<pre><span class="c">// Latin: SF Pro Rounded; Japanese: Hiragino Sans (system-served on iOS)</span>
+<span class="c">// Both have rounded geometry — visual cohesion. Avoid Noto/Source — squarer.</span>
+<span class="k">font-family</span>: ui-rounded, <span class="s">"SF Pro Rounded"</span>, <span class="s">"Hiragino Sans"</span>, system-ui;
+
+<span class="c">// CRITICAL: do NOT bold Japanese glyph at small sizes (&lt;14pt).</span>
+<span class="c">// Hiragino bold strokes blur kana counters at small sizes. Use weight 500–600.</span></pre>
+    </div>
+  </section>
+
+  <!-- 10 PALETTE -->
+  <section id="palette">
+    <div class="num">10</div>
+    <h2>Color tokens</h2>
+    <p class="desc">Home spec'iyle aynı palet (Paper white + Duo green). Lesson explanation'a özel <b>iki ek kullanım</b>: highlight ring (<code class="inline">accent55 + accentMuted halo</code>) ve danger soft (<code class="inline">danger15</code>, <code class="inline">danger22</code>).</p>
+
+    <div class="row2">
+      <div class="card">
+        <h3>Light mode</h3>
+        <div class="token-grid" id="tg-light"></div>
+      </div>
+      <div class="card">
+        <h3>Dark mode</h3>
+        <div class="token-grid" id="tg-dark"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Lesson-specific derived tokens</h3>
+      <table class="smt">
+        <thead><tr><th>Token</th><th>Formula</th><th>Kullanım</th></tr></thead>
+        <tbody>
+          <tr><td><code>highlight.border</code></td><td>accent + alpha 0x55</td><td>ExampleCard highlight border</td></tr>
+          <tr><td><code>highlight.halo</code></td><td>box-shadow: 0 0 0 3px accentMuted</td><td>ExampleCard highlight ring</td></tr>
+          <tr><td><code>danger.soft</code></td><td>danger + alpha 0x15</td><td>Wrong choice background, feedback strip bg</td></tr>
+          <tr><td><code>danger.softer</code></td><td>danger + alpha 0x22</td><td>Wrong blank box bg</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 11 PEDAGOGY -->
+  <section id="pedagogy">
+    <div class="num">11</div>
+    <h2>Pedagojik prensipler</h2>
+    <p class="desc">UI kararlarının altındaki cognitive science. Designer'ın "neden böyle?" sorusuna cevap.</p>
+
+    <div class="card">
+      <h3>1 · Concrete → Abstract → Concrete</h3>
+      <p style="font-size:14px;line-height:1.65;margin:0;">Hook (concrete: glyphler), Tanıtım (abstract: tanımlar), Karşılaştırma (concrete: cümleler), Quiz (concrete + retrieval), Özet (abstract: chunk). C→A→C→C→A pattern. Saf abstract'tan kaçar.</p>
+    </div>
+
+    <div class="card">
+      <h3>2 · Tek bilişsel görev / sayfa</h3>
+      <p style="font-size:14px;line-height:1.65;margin:0;">Her sayfada <i>en fazla bir</i> yeni schema gelir. Tanıtım'da iki tanım var ama paralel (aynı schema parçaları). Quiz tek soru. Özet sadece review. Kullanıcı her sayfada "bu sayfada ne öğrendim?" sorusuna tek cümleyle cevap verebilmeli.</p>
+    </div>
+
+    <div class="card">
+      <h3>3 · Retrieval before consolidation</h3>
+      <p style="font-size:14px;line-height:1.65;margin:0;">Quiz özetten önce. Eğer özet quiz'den önce gelirse kullanıcı doğru cevabı zaten okumuş olur — retrieval boş geçer. <b>Testing effect</b>: aktif retrieval pasif okumadan ~2x güçlü.</p>
+    </div>
+
+    <div class="card">
+      <h3>4 · Wrong reveals correct (no shame loop)</h3>
+      <p style="font-size:14px;line-height:1.65;margin:0;">Quiz wrong state'inde doğru cevap aynı ekranda accent ile gösterilir. Kullanıcı yanlışı tekrar denemek zorunda değil — istiyorsa "TEKRAR DENE" var. <b>Hata utanılacak şey değil, fark edilecek şey</b>. Bu disiplin streak'lerin sürdürülebilirliği için kritik.</p>
+    </div>
+
+    <div class="card">
+      <h3>5 · Skip is a feature, not a sin</h3>
+      <p style="font-size:14px;line-height:1.65;margin:0;">"Atla" tüm sayfalarda var. İleri seviye kullanıcı zaten konuyu biliyor olabilir; explanation onu yavaşlatmamalı. Telemetri ile ölç: skipped_at_page rate %30+ ise konunun bir önceki ünitede yetişen olduğu anlamına gelir, içeriği basitleştir.</p>
+    </div>
+  </section>
+
+  <!-- 12 COPY -->
+  <section id="copy">
+    <div class="num">12</div>
+    <h2>Copy guidelines</h2>
+    <p class="desc">Tone: arkadaşça öğretmen. İkinci tekil ("sen"). Soru cümleleriyle başlatma (Headspace'in tuzağı). İmplicit confidence: "yapacaksın", "anlayacaksın" — "yapabilirsin"den daha güçlü.</p>
+
+    <div class="card">
+      <h3>Do / Don't</h3>
+      <table class="copytbl">
+        <thead><tr><th>Slot</th><th>✓ Do</th><th>✗ Don't</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Hook headline</b></td>
+            <td>"は ve が — Japonca'nın en kafa karıştırıcı çifti"</td>
+            <td>"Particle Lesson 7" / "Today we will learn"</td>
+          </tr>
+          <tr>
+            <td><b>Hook body</b></td>
+            <td>"…hissederek öğreneceksin — ezberleyerek değil."</td>
+            <td>"Bu konu çok önemli, dikkat et."</td>
+          </tr>
+          <tr>
+            <td><b>Eyebrow</b></td>
+            <td>"1 · Temel" · "3 · Hızlı kontrol"</td>
+            <td>"Lesson section 1" · "Quiz time!"</td>
+          </tr>
+          <tr>
+            <td><b>Quiz prompt</b></td>
+            <td>Kullanıcının dilinde net soru: "…hangisi olur?"</td>
+            <td>Komut: "Choose the right particle."</td>
+          </tr>
+          <tr>
+            <td><b>Correct feedback</b></td>
+            <td>"Doğru! 'Kim?' sorusunun cevabı …" (gerekçe ver)</td>
+            <td>"Tebrikler!" / emoji 🎉 / "Süper!"</td>
+          </tr>
+          <tr>
+            <td><b>Wrong feedback</b></td>
+            <td>"Tekrar düşün. 'Kim?' sorusu özne soruyor — …"</td>
+            <td>"Yanlış!" / "Olmadı." / sad emoji</td>
+          </tr>
+          <tr>
+            <td><b>Summary item</b></td>
+            <td>"<b>は</b> · Konuyu işaretler. 'Bahsettiğimiz şu.'"</td>
+            <td>Ders sonu: "You completed lesson 1!"</td>
+          </tr>
+          <tr>
+            <td><b>CTA verbs</b></td>
+            <td>HADİ BAŞLAYALIM · DEVAM · ANLADIM · ALIŞTIRMAYA GEÇ</td>
+            <td>NEXT · CONTINUE · OK · DONE</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Word budgets</h3>
+      <table class="smt">
+        <thead><tr><th>Slot</th><th>Max</th><th>Sweet spot</th></tr></thead>
+        <tbody>
+          <tr><td>Headline</td><td>14 words</td><td>8–12</td></tr>
+          <tr><td>Body paragraph</td><td>2 sentences, ≤44 words</td><td>32–40</td></tr>
+          <tr><td>DefCard label</td><td>6 words</td><td>3–5</td></tr>
+          <tr><td>DefCard body</td><td>2 sentences, ≤30 words</td><td>20–28</td></tr>
+          <tr><td>Footnote tip</td><td>1 sentence, ≤22 words</td><td>14–20</td></tr>
+          <tr><td>Quiz prompt</td><td>14 words</td><td>10–12</td></tr>
+          <tr><td>Feedback</td><td>2 sentences, ≤24 words</td><td>16–22</td></tr>
+          <tr><td>Summary item</td><td>1 sentence, ≤16 words</td><td>10–14</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 13 SCREENS -->
+  <section id="screens">
+    <div class="num">13</div>
+    <h2>Screens · light + dark</h2>
+    <p class="desc">7 ekran (5 sayfa + quiz 3 state) light + dark modda. Tüm spec'in yan yana görüntüsü.</p>
+    <div class="phones" id="screens-light"></div>
+    <h3 style="margin: 56px 0 20px; font-size: 20px; font-weight: 700; letter-spacing: -0.01em;">Dark mode</h3>
+    <div class="phones" id="screens-dark"></div>
+  </section>
+
+  <!-- 14 TOKENS -->
+  <section id="tokens">
+    <div class="num">14</div>
+    <h2>Tokens · JSON export</h2>
+    <p class="desc">Direkt SwiftUI Color extension + lesson explanation derived tokens. SwiftUI implementation aşağıda.</p>
+    <div class="card"><pre id="json-export"></pre></div>
+    <div class="card" style="margin-top:16px;">
+      <h3>SwiftUI sketch · DefCard</h3>
+<pre><span class="k">struct</span> DefCard: <span class="k">View</span> {
+  <span class="k">let</span> particle: String
+  <span class="k">let</span> translit: String
+  <span class="k">let</span> label: String
+  <span class="k">let</span> body: String
+  <span class="k">let</span> accent: <span class="k">Bool</span>
+
+  <span class="k">var</span> body: <span class="k">some</span> <span class="k">View</span> {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 14) {
+        <span class="c">// glyph box</span>
+        Text(particle)
+          .font(.system(size: 32, weight: .bold, design: .rounded))
+          .foregroundStyle(accent ? .pkAccent : .pkTextPrimary)
+          .frame(width: 56, height: 56)
+          .background(accent ? .pkAccentMuted : .pkSurfaceMuted, <span class="k">in</span>: .rect(cornerRadius: 16))
+
+        VStack(alignment: .leading, spacing: 2) {
+          Text(translit.uppercased())
+            .font(.system(size: 11, weight: .bold, design: .rounded))
+            .tracking(0.88)
+            .foregroundStyle(accent ? .pkAccentInk : .pkTextTertiary)
+          Text(label)
+            .font(.system(size: 16, weight: .semibold, design: .rounded))
+        }
+        Spacer()
+        SpeakerButton()
+      }
+      Text(body)
+        .font(.system(size: 14, weight: .medium, design: .rounded))
+        .foregroundStyle(.pkTextSecondary)
+        .lineSpacing(4)
+    }
+    .padding(.horizontal, 18).padding(.vertical, 16)
+    .background(.pkSurface, <span class="k">in</span>: .rect(cornerRadius: 16))
+    .overlay(RoundedRectangle(cornerRadius: 16).stroke(.pkDivider, lineWidth: 1))
+  }
+}</pre>
+    </div>
+  </section>
+
+  <!-- 15 ANTI -->
+  <section id="anti">
+    <div class="num">15</div>
+    <h2>Anti-examples · ders anlatımı tuzakları</h2>
+    <p class="desc">Lesson explanation'lar genelde başarısız çünkü designer ders kitabı yazmaya çalışır. Aşağıdakiler en sık tuzaklar.</p>
+
+    <div class="anti">
+      <div class="anti-card anti-no">
+        <div class="anti-tag">✗ Don't</div>
+        <div class="what">Tek sayfada tüm konu (wall of text)</div>
+        <div class="why">Kullanıcı kaydırır, hiçbir şey hatırlamaz. Bilişsel yük tek seferde patlamasını yapar.</div>
+      </div>
+      <div class="anti-card anti-yes">
+        <div class="anti-tag">✓ Do</div>
+        <div class="what">5 atomic sayfa, sayfa başına tek görev</div>
+        <div class="why">Her sayfa kendi içinde bir "mikro-completion" verir. Pacing duygusu yaratır.</div>
+      </div>
+
+      <div class="anti-card anti-no">
+        <div class="anti-tag">✗ Don't</div>
+        <div class="what">Quiz en sonda (özetten sonra)</div>
+        <div class="why">Özet kullanıcıya cevabı verir; quiz boş retrieval olur, testing effect kaybolur.</div>
+      </div>
+      <div class="anti-card anti-yes">
+        <div class="anti-tag">✓ Do</div>
+        <div class="what">Quiz ortada (sayfa 4), özet en sonda</div>
+        <div class="why">Aktif hatırlama hâlâ taze schema üzerinde çalışır. Özet sonra chunk olur.</div>
+      </div>
+
+      <div class="anti-card anti-no">
+        <div class="anti-tag">✗ Don't</div>
+        <div class="what">Wrong state'de doğru cevabı saklamak</div>
+        <div class="why">"Tekrar dene, doğru cevabı bulana kadar." Frustration loop. Kullanıcı tahmine geçer, anlama kaybolur.</div>
+      </div>
+      <div class="anti-card anti-yes">
+        <div class="anti-tag">✓ Do</div>
+        <div class="what">Wrong state aynı ekranda doğruyu accent ile gösterir</div>
+        <div class="why">Yanlış + doğru tek snapshot. Kullanıcı farkı hemen görür. İsteğe bağlı tekrar deneme var.</div>
+      </div>
+
+      <div class="anti-card anti-no">
+        <div class="anti-tag">✗ Don't</div>
+        <div class="what">Confetti / 🎉 emoji / "Süper!" feedback</div>
+        <div class="why">Tantanalı, premium hissi yok eder. Çocuk uygulaması hissi. Asıl ödül anlama, performansa değil.</div>
+      </div>
+      <div class="anti-card anti-yes">
+        <div class="anti-tag">✓ Do</div>
+        <div class="what">"Doğru! 'Kim?' sorusunun cevabı …" — gerekçeli</div>
+        <div class="why">Feedback kuru değil, eğitici. Kullanıcı doğruyken bile <i>neden</i> doğru olduğunu öğrenir.</div>
+      </div>
+
+      <div class="anti-card anti-no">
+        <div class="anti-tag">✗ Don't</div>
+        <div class="what">Japanese glyph + Latin font karışık (ör. Inter + Noto)</div>
+        <div class="why">İki farklı geometri, iki farklı counter. Cümle "patchwork" görünür, premium hissi gider.</div>
+      </div>
+      <div class="anti-card anti-yes">
+        <div class="anti-tag">✓ Do</div>
+        <div class="what">SF Pro Rounded + Hiragino Sans</div>
+        <div class="why">İkisi de rounded geometry. iOS system-served, ekstra font yok. Cümle bütünleşir.</div>
+      </div>
+
+      <div class="anti-card anti-no">
+        <div class="anti-tag">✗ Don't</div>
+        <div class="what">"Atla" yok / dimmed / disabled</div>
+        <div class="why">İleri kullanıcıya saygısızlık. Dropout artar. Kullanıcı zorla okuma yapmaz.</div>
+      </div>
+      <div class="anti-card anti-yes">
+        <div class="anti-tag">✓ Do</div>
+        <div class="what">"Atla" tüm sayfalarda görünür, küçük confirm sheet</div>
+        <div class="why">Saygılı opsiyon. Telemetri ile içerik kalitesi ölçülür.</div>
+      </div>
+
+      <div class="anti-card anti-no">
+        <div class="anti-tag">✗ Don't</div>
+        <div class="what">XP / streak alıştırma yapmadan açıklamadan verilir</div>
+        <div class="why">Açıklamayı sıkıcı bir vergi gibi göstermek için "ödül" eklemek. Kullanıcı sadece XP için skip eder.</div>
+      </div>
+      <div class="anti-card anti-yes">
+        <div class="anti-tag">✓ Do</div>
+        <div class="what">XP/streak sadece alıştırma sonrası</div>
+        <div class="why">Anlama kendi başına yeterli ödül; "Konu tamamlandı" rozeti sadece görsel kapanış.</div>
+      </div>
+    </div>
+  </section>
+
+  <p style="text-align:center;color:var(--doc-faint);font-size:12px;font-family:ui-monospace,monospace;margin-top:80px;">
+    paktly · lesson explanation spec · v0.1 · ready for SwiftUI implementation
+  </p>
+
+</div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="components/palettes.js"></script>
+<script type="text/babel" src="components/ios-frame.jsx"></script>
+<script type="text/babel" src="components/paktly-ders-anlatimi.jsx"></script>
+
+<script type="text/babel">
+  const PAL = window.PALETTES.nature;
+  const L = PAL.light;
+  const D = PAL.dark;
+
+  // Token grid
+  const TOKEN_GROUPS = [
+    ['Surface',   ['background','surface','surfaceMuted','divider']],
+    ['Text',      ['textPrimary','textSecondary','textTertiary']],
+    ['Accent',    ['accent','accentMuted','accentInk']],
+    ['Semantic',  ['success','warning','danger']],
+  ];
+  function TokenGrid({ tokens }) {
+    return (
+      <>
+        {TOKEN_GROUPS.map(([title, keys]) => (
+          <React.Fragment key={title}>
+            <div style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
+              textTransform: 'uppercase', color: 'var(--doc-faint)',
+              gridColumn: '1 / -1', marginTop: 4,
+            }}>{title}</div>
+            {keys.map(k => (
+              <div key={k} className="token">
+                <div className="swatch" style={{ background: tokens[k] }}/>
+                <div className="meta">
+                  <div className="name">{k}</div>
+                  <div className="hex">{tokens[k].toUpperCase()}</div>
+                </div>
+              </div>
+            ))}
+          </React.Fragment>
+        ))}
+      </>
+    );
+  }
+
+  // Type scale (lesson-specific)
+  const TYPE_SCALE = [
+    { name: 'glyphHero',   size: 72, weight: 700, line: '1.0',  track: '-0.02em', sample: 'は が' },
+    { name: 'titleLg',     size: 30, weight: 700, line: '1.15', track: '-0.015em', sample: 'は ve が — kafa karıştırıcı çift' },
+    { name: 'title',       size: 26, weight: 700, line: '1.2',  track: '-0.01em',  sample: 'Bunu öğrendin' },
+    { name: 'title2',      size: 24, weight: 700, line: '1.2',  track: '-0.01em',  sample: 'Konu mu, yoksa özne mi?' },
+    { name: 'titleQuiz',   size: 22, weight: 700, line: '1.25', track: '-0.005em', sample: '"Pencereyi kim kırdı?" sorusunda…' },
+    { name: 'glyphMd',     size: 26, weight: 700, line: '1.0',  track: '0',        sample: 'は · が' },
+    { name: 'exampleJp',   size: 22, weight: 700, line: '1.3',  track: '-0.005em', sample: 'わたしは がくせいです。' },
+    { name: 'body',        size: 16, weight: 500, line: '1.55', track: '0',        sample: 'Aynı cümle, sadece partikül farklı.' },
+    { name: 'note',        size: 14, weight: 500, line: '1.5',  track: '0',        sample: 'Konu ben\u2019im. Cevap "ne olduğum" hakkında.' },
+    { name: 'eyebrow',     size: 11, weight: 700, line: '1.2',  track: '0.08em',   sample: '1 · TEMEL' },
+    { name: 'metaChip',    size: 9,  weight: 700, line: '1.2',  track: '0.05em',   sample: 'KONU' },
+  ];
+  function TypeRow({ row }) {
+    return (
+      <div className="type-row">
+        <div className="type-name">.{row.name}</div>
+        <div className="type-sample" style={{
+          fontFamily: 'ui-rounded, "SF Pro Rounded", "Hiragino Sans", system-ui',
+          fontSize: row.size, fontWeight: row.weight,
+          lineHeight: row.line, letterSpacing: row.track,
+          textTransform: row.name === 'eyebrow' || row.name === 'metaChip' ? 'uppercase' : 'none',
+        }}>{row.sample}</div>
+        <div className="type-spec">
+          {row.size}/{row.line} · w{row.weight}<br/>
+          tracking {row.track}
+        </div>
+      </div>
+    );
+  }
+
+  // Chrome demo
+  function ChromeDemo() {
+    return (
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center',
+        background: L.background,
+      }}>
+        <div style={{ width: 360 }}>
+          <PaktlyDersChrome pageIndex={2} tokens={L}/>
+        </div>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('chrome-demo')).render(<ChromeDemo/>);
+  ReactDOM.createRoot(document.getElementById('tg-light')).render(<TokenGrid tokens={L}/>);
+  ReactDOM.createRoot(document.getElementById('tg-dark')).render(<TokenGrid tokens={D}/>);
+  ReactDOM.createRoot(document.getElementById('type-scale')).render(
+    <>{TYPE_SCALE.map(r => <TypeRow key={r.name} row={r}/>)}</>
+  );
+
+  // Screen showcases
+  function Screens({ tokens }) {
+    const sc = [
+      { Comp: PaktlyDersHook,        label: '1. Hook',          sub: 'Motivation prime' },
+      { Comp: PaktlyDersIntro,       label: '2. Tanıtım',       sub: 'Schema build' },
+      { Comp: PaktlyDersComparison,  label: '3. Karşılaştırma', sub: 'Pattern reveal' },
+      { Comp: () => <PaktlyDersMiniQuiz state="unanswered" tokens={tokens}/>, label: '4. Quiz · idle',     sub: 'Disabled CTA' },
+      { Comp: () => <PaktlyDersMiniQuiz state="correct"    tokens={tokens}/>, label: '4a. Quiz · correct', sub: 'DEVAM accent CTA' },
+      { Comp: () => <PaktlyDersMiniQuiz state="wrong"      tokens={tokens}/>, label: '4b. Quiz · wrong',   sub: 'TEKRAR DENE neutral' },
+      { Comp: PaktlyDersSummary,     label: '5. Özet',          sub: 'Consolidation' },
+    ];
+    return (
+      <>
+        {sc.map((s, i) => (
+          <div className="phone-cap" key={i}>
+            <IOSDevice width={390} height={844} scale={0.62}>
+              <s.Comp tokens={tokens}/>
+            </IOSDevice>
+            <div className="cap-label"><b>{s.label}</b>{s.sub}</div>
+          </div>
+        ))}
+      </>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('screens-light')).render(<Screens tokens={L}/>);
+  ReactDOM.createRoot(document.getElementById('screens-dark')).render(<Screens tokens={D}/>);
+
+  // JSON export
+  const jsonObj = {
+    palette: 'paper-white-duo-green',
+    light: L,
+    dark: D,
+    derivedTokens: {
+      'highlight.border': 'accent + 0x55 alpha',
+      'highlight.halo':   'box-shadow: 0 0 0 3px accentMuted',
+      'danger.soft':      'danger + 0x15 alpha',
+      'danger.softer':    'danger + 0x22 alpha',
+    },
+    flow: {
+      pages: 5,
+      sequence: ['hook','intro','comparison','quiz','summary'],
+      duration_min: 3,
+    },
+    quiz: {
+      states: ['unanswered','correct','wrong'],
+      ctaByState: { unanswered: 'KONTROL ET (disabled)', correct: 'DEVAM (accent)', wrong: 'TEKRAR DENE (neutral)' },
+    },
+    timing_ms: {
+      pageTransition: 280,
+      glyphScale: 200,
+      pressIn: 90, pressOut: 160,
+      revealAnim: 220,
+      feedbackFade: 180,
+      dotPagination: 240,
+    },
+  };
+  document.getElementById('json-export').textContent = JSON.stringify(jsonObj, null, 2);
+</script>
+
+</body>
+</html>

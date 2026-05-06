@@ -1,0 +1,1019 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Paktly · Lesson Practice spec</title>
+<style>
+  :root {
+    --doc-bg: #FAFAF7;
+    --doc-fg: #1A1A1A;
+    --doc-muted: #6E6E6E;
+    --doc-faint: #A8A8A8;
+    --doc-card: #FFFFFF;
+    --doc-divider: #E8E8E5;
+    --doc-accent: #58CC02;
+    --doc-accent-ink: #3A8A00;
+    --doc-warn: #FFC800;
+    --doc-danger: #FF4B4B;
+    --doc-gold: #FFC83D;
+    --doc-flame: #FF8A00;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--doc-bg); color: var(--doc-fg);
+    font-family: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 56px 32px 120px; }
+  .doc-header { display: flex; gap: 24px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; margin-bottom: 56px; }
+  .doc-header h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.025em; margin: 0 0 8px; }
+  .doc-header .lede { color: var(--doc-muted); margin: 0; max-width: 64ch; line-height: 1.55; font-size: 15px; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #58CC0218; color: var(--doc-accent-ink); font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+  .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--doc-accent); }
+
+  .toc { position: sticky; top: 0; background: var(--doc-bg); padding: 16px 0 12px; margin-bottom: 32px; border-bottom: 1px solid var(--doc-divider); z-index: 50; }
+  .toc ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .toc a { display: inline-block; padding: 6px 12px; border-radius: 8px; color: var(--doc-muted); text-decoration: none; font-size: 13px; font-weight: 600; border: 1px solid var(--doc-divider); background: var(--doc-card); }
+  .toc a:hover { color: var(--doc-fg); border-color: var(--doc-fg); }
+
+  section { margin-bottom: 80px; scroll-margin-top: 80px; }
+  section > .num { font-family: ui-monospace, "SF Mono", monospace; font-size: 12px; font-weight: 600; color: var(--doc-faint); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  section > h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 12px; }
+  section > .desc { color: var(--doc-muted); max-width: 70ch; line-height: 1.55; font-size: 15px; margin: 0 0 28px; }
+
+  .card { background: var(--doc-card); border: 1px solid var(--doc-divider); border-radius: 20px; padding: 28px; }
+  .card + .card { margin-top: 16px; }
+  .card h3 { font-size: 17px; font-weight: 700; margin: 0 0 16px; letter-spacing: -0.01em; }
+  .card .hint { color: var(--doc-muted); font-size: 13px; line-height: 1.5; margin-top: 12px; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .row2, .row3 { grid-template-columns: 1fr; } }
+
+  .geo { display: grid; grid-template-columns: 360px 1fr; gap: 32px; align-items: flex-start; }
+  @media (max-width: 900px) { .geo { grid-template-columns: 1fr; } }
+  .geo-spec { font-family: ui-monospace, "SF Mono", monospace; font-size: 13px; line-height: 1.9; color: var(--doc-muted); }
+  .geo-spec b { color: var(--doc-fg); font-weight: 700; }
+  .geo-spec .group { padding: 12px 16px; background: var(--doc-bg); border-radius: 10px; border: 1px solid var(--doc-divider); margin-bottom: 10px; }
+
+  .phones { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+  .phone-cap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .phone-cap .cap-label { font-size: 13px; font-weight: 600; color: var(--doc-muted); max-width: 280px; text-align: center; line-height: 1.4; }
+  .phone-cap .cap-label b { color: var(--doc-fg); display: block; font-size: 14px; margin-bottom: 2px; }
+
+  pre { background: #0F1A0E; color: #C8E6A0; padding: 20px 24px; border-radius: 14px; font-family: ui-monospace, "SF Mono", monospace; font-size: 12px; line-height: 1.5; overflow-x: auto; margin: 0; }
+  pre .k { color: #93D851; } pre .s { color: #FFC800; } pre .c { color: #6A8055; }
+
+  .anti { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .anti { grid-template-columns: 1fr; } }
+  .anti-card { border-radius: 14px; padding: 16px 18px; border: 1px solid; }
+  .anti-no { background: #FFEEEE; border-color: #FFD2D2; }
+  .anti-yes { background: #ECFADD; border-color: #C9EFA0; }
+  .anti-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .anti-no .anti-tag { color: var(--doc-danger); }
+  .anti-yes .anti-tag { color: var(--doc-accent-ink); }
+  .anti-card .what { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .anti-card .why { font-size: 13px; color: var(--doc-muted); line-height: 1.5; }
+
+  .sub-h { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--doc-muted); margin: 24px 0 8px; }
+  .sub-h:first-child { margin-top: 0; }
+
+  code.inline { background: #0F1A0E; color: #C8E6A0; padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, "SF Mono", monospace; font-size: 12px; }
+
+  .timing-bar { display: grid; grid-template-columns: 1fr; gap: 6px; }
+  .timing { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+  .timing .lab { width: 180px; color: var(--doc-muted); font-family: ui-monospace, monospace; font-size: 12px; }
+  .timing .bar { flex: 1; height: 8px; border-radius: 4px; background: var(--doc-divider); position: relative; }
+  .timing .bar > span { display: block; height: 100%; border-radius: 4px; background: var(--doc-accent); }
+  .timing .ms { font-family: ui-monospace, monospace; font-size: 12px; color: var(--doc-fg); width: 64px; text-align: right; }
+
+  .smt { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .smt th, .smt td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--doc-divider); vertical-align: top; }
+  .smt th { font-weight: 700; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--doc-muted); }
+  .smt td code { font-family: ui-monospace, monospace; font-size: 12px; color: var(--doc-fg); }
+  .smt .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .smt .pill.ok { background: #D7FFB8; color: #3A8A00; }
+  .smt .pill.no { background: #FFE0E0; color: #C53D3D; }
+  .smt .pill.zz { background: var(--doc-divider); color: var(--doc-muted); }
+  .smt .pill.gold { background: #FFE9A8; color: #8A5A00; }
+
+  .flow { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin-bottom: 8px; }
+  @media (max-width: 1100px) { .flow { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 600px) { .flow { grid-template-columns: 1fr 1fr; } }
+  .flow-step { background: var(--doc-bg); border: 1px solid var(--doc-divider); border-radius: 12px; padding: 12px 14px; position: relative; min-height: 96px; }
+  .flow-step .ix { font-family: ui-monospace, monospace; font-size: 10px; color: var(--doc-faint); letter-spacing: 0.06em; }
+  .flow-step h4 { margin: 4px 0 6px; font-size: 13px; font-weight: 700; }
+  .flow-step p { margin: 0; font-size: 11px; color: var(--doc-muted); line-height: 1.4; }
+  .flow-step .role { margin-top: 6px; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--doc-accent-ink); }
+  .flow-step.gold { background: #FFF6DD; border-color: #F4D87A; }
+  .flow-step.gold .role { color: #8A5A00; }
+  .flow-step.warn { background: #FFEFD9; border-color: #F4C28C; }
+  .flow-step.warn .role { color: var(--doc-flame); }
+
+  .copytbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .copytbl th, .copytbl td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--doc-divider); }
+  .copytbl th { font-weight: 700; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--doc-muted); }
+  .copytbl td b { color: var(--doc-fg); }
+
+  .token-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .token { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--doc-bg); border-radius: 10px; border: 1px solid var(--doc-divider); }
+  .token .swatch { width: 28px; height: 28px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.06); flex: 0 0 auto; }
+  .token .meta { font-size: 12px; min-width: 0; }
+  .token .name { font-weight: 600; color: var(--doc-fg); }
+  .token .hex { font-family: ui-monospace, "SF Mono", monospace; color: var(--doc-muted); }
+
+  .type-row { display: grid; grid-template-columns: 160px 1fr 220px; gap: 24px; align-items: baseline; padding: 16px 0; border-top: 1px solid var(--doc-divider); }
+  .type-row:first-child { border-top: none; }
+  .type-name { font-family: ui-monospace, "SF Mono", monospace; font-size: 12px; color: var(--doc-muted); }
+  .type-sample { color: var(--doc-fg); }
+  .type-spec { font-family: ui-monospace, "SF Mono", monospace; font-size: 12px; color: var(--doc-muted); text-align: right; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-header">
+    <div>
+      <span class="badge"><span class="badge-dot"></span> Phase 4 · production spec</span>
+      <h1 style="margin-top:14px;">Paktly · Lesson Practice spec</h1>
+      <p class="lede">
+        Tek bir dersi <b>başarmışlık hissi</b>yle bitirmek için kurulmuş alıştırma sistemi.
+        5 alıştırma türü · combo &amp; streak motoru · XP gain count-up · 3-tap reward chest ·
+        encouragement interstitials (3, 5, halfway, perfect) · completion ekranı (4 metric) ·
+        edge states (heart out, lesson fail). Light + dark.
+      </p>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:12px;color:var(--doc-muted);font-family:ui-monospace,monospace;">paktly · v0.1 · lesson practice</div>
+      <div style="font-size:12px;color:var(--doc-muted);font-family:ui-monospace,monospace;">390×844pt · iOS 16+</div>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <ul>
+      <li><a href="#flow">01 · Flow mimarisi</a></li>
+      <li><a href="#chrome">02 · Exercise chrome</a></li>
+      <li><a href="#mc">03 · Multiple choice</a></li>
+      <li><a href="#wb">04 · Word bank</a></li>
+      <li><a href="#typing">05 · Typing</a></li>
+      <li><a href="#listening">06 · Listening</a></li>
+      <li><a href="#speaking">07 · Speaking</a></li>
+      <li><a href="#combo">08 · Combo &amp; streak</a></li>
+      <li><a href="#xp">09 · XP gain</a></li>
+      <li><a href="#chest">10 · 3-tap reward chest</a></li>
+      <li><a href="#enc">11 · Encouragement</a></li>
+      <li><a href="#completion">12 · Completion</a></li>
+      <li><a href="#edge">13 · Edge states</a></li>
+      <li><a href="#type">14 · Type &amp; color</a></li>
+      <li><a href="#screens">15 · Screens · light + dark</a></li>
+      <li><a href="#tokens">16 · Tokens (JSON) + anti-examples</a></li>
+    </ul>
+  </nav>
+
+  <!-- 01 FLOW -->
+  <section id="flow">
+    <div class="num">01</div>
+    <h2>Flow mimarisi · 1 ders ≈ 4–5 dakika</h2>
+    <p class="desc">
+      Bir ders <b>10 alıştırma + 2 ara-sayfa + 1 kapanış</b>. Ara sayfalar mid-flow'dadır
+      (3 doğru, 5 doğru, halfway, perfect) — aksi takdirde dropout 4. alıştırmaya kadar
+      ulaşır. Her alıştırma micro-feedback (band) verir; her milestone macro-feedback
+      (interstitial) verir; ders kapanışı meta-feedback (4 metric + chest) verir.
+    </p>
+
+    <div class="card">
+      <div class="flow">
+        <div class="flow-step"><div class="ix">01</div><h4>MC · image</h4><p>Tek kelime, görsel ipucu.</p><div class="role">Recognition</div></div>
+        <div class="flow-step"><div class="ix">02</div><h4>MC · image</h4><p>Aynı set, farklı kelime.</p><div class="role">Recognition</div></div>
+        <div class="flow-step"><div class="ix">03</div><h4>Word bank</h4><p>Kelimeleri sıralayıp cümle kur.</p><div class="role">Production</div></div>
+        <div class="flow-step warn"><div class="ix">★</div><h4>Encourage · combo3</h4><p>"Süper gidiyorsun!" 1.6s.</p><div class="role">Streak prime</div></div>
+        <div class="flow-step"><div class="ix">04</div><h4>Listening</h4><p>Sesi dinle, cevabı seç.</p><div class="role">Audio recall</div></div>
+        <div class="flow-step"><div class="ix">05</div><h4>Typing</h4><p>Romanji yaz.</p><div class="role">Recall</div></div>
+        <div class="flow-step warn"><div class="ix">★</div><h4>Encourage · halfway</h4><p>"Yarısı bitti!" 1.6s.</p><div class="role">Persist prime</div></div>
+        <div class="flow-step"><div class="ix">06</div><h4>MC · text</h4><p>Görsel olmadan, çeviri.</p><div class="role">Recognition</div></div>
+        <div class="flow-step"><div class="ix">07</div><h4>Word bank</h4><p>Daha uzun cümle.</p><div class="role">Production</div></div>
+        <div class="flow-step"><div class="ix">08</div><h4>Listening</h4><p>3 seçenek, dialog.</p><div class="role">Audio recall</div></div>
+        <div class="flow-step"><div class="ix">09</div><h4>Typing</h4><p>Cümle yaz.</p><div class="role">Recall</div></div>
+        <div class="flow-step"><div class="ix">10</div><h4>Speaking</h4><p>Mikrofon — opsiyonel.</p><div class="role">Production</div></div>
+        <div class="flow-step gold"><div class="ix">▣</div><h4>Completion</h4><p>4 metric · chest CTA.</p><div class="role">Reward macro</div></div>
+        <div class="flow-step gold"><div class="ix">▣</div><h4>3-tap chest</h4><p>Sürpriz XP/gem reveal.</p><div class="role">Variable reward</div></div>
+        <div class="flow-step gold"><div class="ix">▣</div><h4>XP gain page</h4><p>Count-up + confetti.</p><div class="role">Cement</div></div>
+      </div>
+      <p class="hint">
+        <b>Sıralamanın gerekçesi:</b> önce kolay tanıma (MC), sonra üretim (word bank),
+        sonra ses (listening), sonra hatırlama (typing). Encourage interstitial'ı 4. ve
+        7. arasına koyuyoruz çünkü dropout pikleri orada. Speaking en sonda — atlanabilir,
+        zorlamasız. Completion'dan sonra <b>variable reward</b>: chest tıkla, sürpriz XP.
+      </p>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Ders içi state vektörü</h3>
+      <table class="smt">
+        <tr><th>State</th><th>Type</th><th>Range</th><th>Side effect</th></tr>
+        <tr><td><code>currentExercise</code></td><td>int</td><td>0..N-1</td><td>progress = (currentExercise+1)/N</td></tr>
+        <tr><td><code>hearts</code></td><td>int</td><td>0..5</td><td>0 → heart-out sheet</td></tr>
+        <tr><td><code>combo</code></td><td>int</td><td>0..N</td><td>≥2 → combo pill görünür · ≥3 → encourage trigger</td></tr>
+        <tr><td><code>comboHigh</code></td><td>int</td><td>≥0</td><td>completion'da metric</td></tr>
+        <tr><td><code>correct</code></td><td>int</td><td>≥0</td><td>accuracy = correct/answered</td></tr>
+        <tr><td><code>answered</code></td><td>int</td><td>≥0</td><td>—</td></tr>
+        <tr><td><code>xpEarned</code></td><td>int</td><td>≥0</td><td>+10 base/correct, +5 combo bonus, +10 perfect bonus</td></tr>
+        <tr><td><code>perfect</code></td><td>bool</td><td>—</td><td>true ise final encourage tetiklenir</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 02 CHROME -->
+  <section id="chrome">
+    <div class="num">02</div>
+    <h2>Exercise chrome · close · progress · combo · hearts</h2>
+    <p class="desc">
+      Tek satır, 56pt. Sol: X (dismiss → confirm sheet). Orta: progress bar (14pt high,
+      iç highlight). Sağ: combo pill (combo ≥2'de görünür) + hearts pill (her zaman
+      görünür). Combo pill flame iconu, combo arttıkça flame büyür (18 → 24pt).
+    </p>
+
+    <div class="card">
+      <div class="geo">
+        <div id="chrome-demo" style="position:relative;width:360px;height:120px;background:var(--doc-bg);border-radius:14px;overflow:hidden;display:flex;align-items:center;padding:0 16px;gap:12px;">
+          <div style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 5 L15 15 M15 5 L5 15" stroke="#888" stroke-width="2.4" stroke-linecap="round"/></svg>
+          </div>
+          <div style="flex:1;height:14px;border-radius:7px;background:#E8E8E5;position:relative;overflow:hidden;">
+            <div style="position:absolute;left:0;top:0;bottom:0;width:55%;background:#58CC02;border-radius:7px;">
+              <div style="position:absolute;left:4px;top:2px;right:4px;height:4px;background:rgba(255,255,255,0.4);border-radius:2px;"></div>
+            </div>
+          </div>
+          <div style="height:28px;padding:0 8px 0 4px;border-radius:14px;background:#FF8A0015;display:flex;align-items:center;gap:4px;">
+            <svg width="20" height="20" viewBox="0 0 18 18" fill="none"><path d="M9 2 C 11 5, 14 6, 14 11 C 14 14, 11.5 16, 9 16 C 6.5 16, 4 14, 4 11 C 4 9, 5 8, 6 8 C 6 6, 7 4, 9 2 Z" fill="#FF8A00"/></svg>
+            <span style="font-size:13px;font-weight:700;color:#D87000;">×3</span>
+          </div>
+          <div style="height:28px;padding:0 8px 0 4px;border-radius:14px;background:#FF4B4B15;display:flex;align-items:center;gap:4px;">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 17 C 4 13, 2 9, 4 6 C 5.5 3.5, 8.5 3.5, 10 6 C 11.5 3.5, 14.5 3.5, 16 6 C 18 9, 16 13, 10 17 Z" fill="#FF4B4B"/></svg>
+            <span style="font-size:13px;font-weight:700;color:#FF4B4B;">4</span>
+          </div>
+        </div>
+        <div class="geo-spec">
+          <div class="group"><b>Container</b><br>56pt height · 0 16pt padding<br>flex · gap 12pt · align center</div>
+          <div class="group"><b>Progress bar</b><br>height 14pt · radius 7pt<br>track: divider<br>fill: accent + 2pt inner highlight (white 40%)<br>transition: 320ms cubic-bezier(.2,.8,.2,1)</div>
+          <div class="group"><b>Combo pill</b> (combo ≥2)<br>height 28pt · radius 14pt<br>bg: flame@15% · ink: flame-deep<br>flame icon: 18 + min(combo, 6) pt<br>text: 13pt bold · "×N"</div>
+          <div class="group"><b>Hearts pill</b><br>height 28pt · radius 14pt<br>bg: danger@15% · ink: danger<br>heart icon: 18pt fill · text: 13pt bold</div>
+          <div class="group"><b>Pill enter/exit</b><br>combo pill: scale 0.6 → 1, 240ms spring<br>heart loss: shake 220ms (translateX ±4pt, 4 cycles)</div>
+        </div>
+      </div>
+      <p class="hint">Combo pill <b>conditional render</b> — combo &lt; 2 ise yok. Bu sayede başlangıçta sade, tek bir pill (hearts). Combo &lt; 2'den ≥2'ye geçişte spring entry yapar; kullanıcı kazandığını fark eder.</p>
+    </div>
+  </section>
+
+  <!-- 03 MC -->
+  <section id="mc">
+    <div class="num">03</div>
+    <h2>Multiple choice · image &amp; text variants</h2>
+    <p class="desc">
+      4 seçenek, 2×2 grid. Image variant: her seçenek 80pt görsel + JP word + romanji.
+      Text variant: tek satır, JP + romanji altta. Seçildiğinde accent border + accentMuted bg.
+      Kontrol et basıldığında doğru ise yeşil border + bg, yanlış ise danger border + bg
+      ve doğru olan da yeşil olur (kullanıcı doğruyu görsün).
+    </p>
+
+    <div class="card">
+      <div class="row3">
+        <div>
+          <div class="sub-h">Idle (none picked)</div>
+          <div style="font-size:12px;color:var(--doc-muted);line-height:1.6;">
+            Border 2pt divider · bg surface · 16pt radius · 12pt gap.
+            Number key (1–4) sol-üstte 22×22pt rounded square.
+            CTA disabled (gri shelf).
+          </div>
+        </div>
+        <div>
+          <div class="sub-h">Picked (pre-check)</div>
+          <div style="font-size:12px;color:var(--doc-muted);line-height:1.6;">
+            Seçili kart: border 2pt accent, bg accentMuted (~accent@10%).
+            Number key border de accent. Diğerleri idle.
+            CTA: accent · "KONTROL ET".
+          </div>
+        </div>
+        <div>
+          <div class="sub-h">Answered</div>
+          <div style="font-size:12px;color:var(--doc-muted);line-height:1.6;">
+            Doğru kart: accent border + accentMuted bg.
+            Yanlış picked kart: danger border + danger@15% bg.
+            Diğerleri idle/disabled.
+            Bottom: feedback band (correct/wrong) + CTA "DEVAM".
+          </div>
+        </div>
+      </div>
+      <p class="hint">
+        Number key (1–4) klavye shortcut'ı için ipucu, ama mobilde aynı zamanda
+        seçim göstergesi (radio yerine). 4'lü grid 2×2 olarak yerleşir; image variant'ta
+        her kart 152pt civarında — 4 görsel rahat sığar, kelime altta.
+      </p>
+    </div>
+  </section>
+
+  <!-- 04 WORD BANK -->
+  <section id="wb">
+    <div class="num">04</div>
+    <h2>Word bank · tap-to-translate</h2>
+    <p class="desc">
+      Üstte Türkçe cümle (prompt), altta 2 satır boş çizgi (answer area), en altta
+      shuffled kelime chip'leri (bank). Bank'ten tıklanan chip answer area'ya kayar;
+      answer area'dan tıklanan chip bank'e geri döner. Her cümle "Sesli dinle" pill'i
+      içerir.
+    </p>
+
+    <div class="card">
+      <div class="row2">
+        <div>
+          <div class="sub-h">Bank chip · raised 3D</div>
+          <div style="font-size:12px;color:var(--doc-muted);line-height:1.6;">
+            Padding 8 14pt · radius 12pt · bg surface · border divider.<br>
+            Shelf: bg divider, top 4pt, bottom 0 (4pt 3D depth).<br>
+            Tap → press: face down 4pt (top: 4pt), 90ms.
+          </div>
+        </div>
+        <div>
+          <div class="sub-h">Tapped slot · flat ghost</div>
+          <div style="font-size:12px;color:var(--doc-muted);line-height:1.6;">
+            Aynı padding, ama bg surfaceMuted, border yok, shelf yok.<br>
+            Hint: "this is committed but reclaimable". Tıklanırsa bank'e geri gider.
+          </div>
+        </div>
+      </div>
+      <p class="hint">
+        Answer area'da 2 satır var (her biri 52pt min, alt çizgi 2pt divider). 3'ten fazla
+        kelimede otomatik wrap. <b>"Sesli dinle" pill'i</b>: prompt altında, 36pt high,
+        accentMuted bg, accent ink. İlk render'da otomatik bir kez okur (auto-play),
+        sonra sessizdir; tıklayınca tekrar okur. <b>Hata toleransı</b>: tek kelime farklı sırayla
+        düzgün gramerse kabul edilir (backend logic).
+      </p>
+    </div>
+  </section>
+
+  <!-- 05 TYPING -->
+  <section id="typing">
+    <div class="num">05</div>
+    <h2>Typing · romanji input</h2>
+    <p class="desc">
+      Hiragana/Katakana glyph'i büyük gösterilir (56pt), kullanıcı romanji yazar.
+      Speaker butonu glyph'in solunda. Input field altta, monospace, blink cursor.
+      İpucu metni input altında — ilk karakter için yardımcı kural verir.
+    </p>
+
+    <div class="card">
+      <div class="geo">
+        <div style="width:360px;font-size:12px;color:var(--doc-muted);line-height:1.6;">
+          <div class="sub-h">Glyph card</div>
+          Padding 32 24pt · radius 20pt · bg surface · border divider.<br>
+          Glyph: 56pt bold, ui-rounded.<br>
+          Speaker button: 52pt circle, accentMuted bg.<br><br>
+          <div class="sub-h">Input field</div>
+          Padding 14 18pt · radius 14pt · bg surface · border 2pt divider.<br>
+          Idle border: divider · Correct: accent · Wrong: danger.<br>
+          Text: 22pt semibold monospace.<br>
+          Cursor: 2pt × 22pt accent, blink 1.1s steps(1) infinite.
+        </div>
+        <div class="geo-spec">
+          <div class="group">
+            <b>Hata toleransı (kritik)</b><br>
+            • Trim leading/trailing whitespace<br>
+            • Lower-case normalize<br>
+            • Tek karakter eksik/fazla → "ALMOST" warning state (sarı border, 1 kalp gitmez)<br>
+            • Diakritik (â/a) eşdeğer
+          </div>
+          <div class="group">
+            <b>İpucu metni</b><br>
+            "İpucu: ses ses yaz · "が" = "ga""<br>
+            13pt med · textTertiary<br>
+            Sadece ilk attempt'ta görünür; yanıt verildikten sonra gizlenir.
+          </div>
+          <div class="group">
+            <b>Speaker auto-play</b><br>
+            Sayfa render'ında 600ms delay sonra 1 kez okur.<br>
+            Tıklayınca tekrar okur.<br>
+            Yanıttan sonra TEKRAR okur (correct/wrong band ile birlikte) — pekiştirme.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 LISTENING -->
+  <section id="listening">
+    <div class="num">06</div>
+    <h2>Listening · normal + slow speaker</h2>
+    <p class="desc">
+      Büyük 132pt circular speaker (primary, accent) + 76pt yan "yavaş" speaker.
+      3 metin seçeneği altta — JP + Türkçe çevirisi ile (typing'in tersine, burada
+      ses → metin, çeviri yardımcı).
+    </p>
+
+    <div class="card">
+      <div class="row2">
+        <div>
+          <div class="sub-h">Primary speaker (normal hız)</div>
+          <div style="font-size:12px;color:var(--doc-muted);line-height:1.6;">
+            132×132pt circle · accent face · 8pt accentInk shelf.<br>
+            Speaker icon: 56pt white.<br>
+            İlk render'da otomatik 1 kez okur · tıklayınca tekrar okur.
+          </div>
+        </div>
+        <div>
+          <div class="sub-h">Slow speaker (yarı hız)</div>
+          <div style="font-size:12px;color:var(--doc-muted);line-height:1.6;">
+            76×76pt circle · surface face · divider shelf · border divider.<br>
+            Speaker icon: 22pt textSecondary + "YAVAŞ" 9pt eyebrow.<br>
+            Sadece tıklanırsa çalar (auto-play yok). Hızı: 0.6×.
+          </div>
+        </div>
+      </div>
+      <p class="hint">
+        Slow button <b>secondary affordance</b> — primary'den belirgin şekilde küçük ve
+        sessiz renkli. Kullanıcı zaten dinleyemediğinde aramaya gitsin diye. 3 seçenek
+        çünkü 4 olunca kart yüksekliği listening prompt'u ile çatışıyor.
+      </p>
+    </div>
+  </section>
+
+  <!-- 07 SPEAKING -->
+  <section id="speaking">
+    <div class="num">07</div>
+    <h2>Speaking · opsiyonel mic exercise</h2>
+    <p class="desc">
+      "Şunu söyle:" + büyük JP cümle + romanji ipucu. Altta 120pt mikrofon butonu;
+      idle'da accent face + accentInk shelf, recording'de danger face + pulse rings.
+      Altta "Şimdi konuşamıyorum" skip linki — her zaman görünür, ceza yok.
+    </p>
+
+    <div class="card">
+      <table class="smt">
+        <tr><th>State</th><th>Mic visual</th><th>Pulse rings</th><th>Sub-text</th><th>CTA</th></tr>
+        <tr><td><span class="pill zz">idle</span></td><td>accent face · accentInk shelf</td><td>—</td><td>"Mikrofona dokun ve söyle"</td><td>"GEÇ" (neutral)</td></tr>
+        <tr><td><span class="pill ok">recording</span></td><td>danger face · darker shelf</td><td>2× pulse-ring 1.4s, accent@22% / @33%</td><td>"Dinleniyor…"</td><td>—</td></tr>
+        <tr><td><span class="pill ok">success</span></td><td>accent face</td><td>—</td><td>"Mükemmel telaffuz!"</td><td>"DEVAM" (accent)</td></tr>
+        <tr><td><span class="pill no">retry</span></td><td>warn face</td><td>—</td><td>"Bir kez daha dene"</td><td>"YENİDEN" (warn)</td></tr>
+      </table>
+      <p class="hint">
+        Speaking <b>opsiyonel</b> — geç kalp alınmaz, XP de tam verilir (pratiklik için
+        ödüllendir). Mic permission denied → "GEÇ" otomatik etkin olur, içerik atlanır,
+        toast: "Mikrofon olmadan da öğrenebilirsin."
+      </p>
+    </div>
+  </section>
+
+  <!-- 08 COMBO -->
+  <section id="combo">
+    <div class="num">08</div>
+    <h2>Combo &amp; streak motoru</h2>
+    <p class="desc">
+      Combo = ardışık doğru sayısı. Yanlış cevapta combo = 0. Combo bazlı feedback
+      katmanları:
+    </p>
+
+    <div class="card">
+      <table class="smt">
+        <tr><th>Combo</th><th>Visual change</th><th>Feedback layer</th><th>XP</th></tr>
+        <tr><td><code>0</code></td><td>combo pill yok</td><td>—</td><td>+10 (base)</td></tr>
+        <tr><td><code>1</code></td><td>combo pill yok</td><td>—</td><td>+10</td></tr>
+        <tr><td><code>2</code></td><td>combo pill spring entry · flame 18pt</td><td>—</td><td>+10</td></tr>
+        <tr><td><code>3</code></td><td>flame 21pt</td><td><b>Encourage interstitial</b> · "Süper gidiyorsun!"</td><td>+10</td></tr>
+        <tr><td><code>4</code></td><td>flame 22pt</td><td>—</td><td>+10 +<span class="pill gold">+2 combo</span></td></tr>
+        <tr><td><code>5</code></td><td>flame 23pt · accent → flame ramp</td><td><b>Encourage interstitial</b> · "Yangın ettin!"</td><td>+10 +<span class="pill gold">+5 combo</span></td></tr>
+        <tr><td><code>6+</code></td><td>flame 24pt (cap)</td><td>—</td><td>+10 +<span class="pill gold">+5 combo</span></td></tr>
+        <tr><td><code>break</code></td><td>combo pill 240ms shake → exit (scale 1 → 0.6, fade)</td><td>—</td><td>+0 (yanlış) · –1 heart</td></tr>
+      </table>
+      <p class="hint">
+        Combo break'de ek bir dikkat çekme yok — kullanıcıyı zaten kalp loss + wrong band
+        ile uyarıyoruz. Combo pill sessizce gider. 3'lük ve 5'lik combo encourage
+        sadece <b>per session bir kez</b> tetiklenir; aynı dersi tekrar oynayan
+        kullanıcı her 3'lükte kesilmez.
+      </p>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Daily streak (ders bazlı, ayrı sistem)</h3>
+      <p style="font-size:13px;color:var(--doc-muted);line-height:1.55;margin:0 0 12px;">
+        Ders bittiğinde <code class="inline">streak.lastActiveDay</code> bugün ise no-op,
+        dün ise +1, başka ise sıfırlanır. Completion ekranındaki "5 günlük seri" bandı
+        bu sistemin yansıması — combo (in-lesson) ile karıştırılmamalı.
+      </p>
+      <pre><span class="c">// streak update — completion'da çağrılır</span>
+<span class="k">function</span> updateDailyStreak(state) {
+  <span class="k">const</span> today = new Date().toDateString();
+  <span class="k">const</span> last  = state.streak.lastActiveDay;
+  <span class="k">const</span> diff  = daysBetween(last, today);
+
+  <span class="k">if</span> (diff === <span class="s">0</span>)      <span class="k">return</span> state;                  <span class="c">// already counted today</span>
+  <span class="k">if</span> (diff === <span class="s">1</span>)      <span class="k">return</span> { count: state.count + <span class="s">1</span>, lastActiveDay: today };
+  <span class="k">return</span> { count: <span class="s">1</span>, lastActiveDay: today };           <span class="c">// reset</span>
+}</pre>
+    </div>
+  </section>
+
+  <!-- 09 XP -->
+  <section id="xp">
+    <div class="num">09</div>
+    <h2>XP gain · count-up reveal</h2>
+    <p class="desc">
+      İki varyant: <b>mini toast</b> (her doğru cevapta, top:70pt'da gold pill, 1.4s
+      auto-dismiss), <b>full page</b> (chest reveal sonrası, count-up + confetti +
+      160pt golden badge).
+    </p>
+
+    <div class="card">
+      <div class="sub-h">Count-up animation</div>
+      <div class="timing-bar" style="margin-bottom:16px;">
+        <div class="timing"><span class="lab">badge enter</span><div class="bar"><span style="width:18%"></span></div><span class="ms">0–360ms</span></div>
+        <div class="timing"><span class="lab">number count-up</span><div class="bar"><span style="width:50%;margin-left:18%;background:var(--doc-gold);"></span></div><span class="ms">360–1360ms</span></div>
+        <div class="timing"><span class="lab">confetti burst</span><div class="bar"><span style="width:14%;margin-left:18%;background:var(--doc-flame);"></span></div><span class="ms">360–640ms</span></div>
+        <div class="timing"><span class="lab">subtitle fade in</span><div class="bar"><span style="width:14%;margin-left:68%;background:var(--doc-accent);"></span></div><span class="ms">1360–1640ms</span></div>
+        <div class="timing"><span class="lab">CTA enabled</span><div class="bar"><span style="width:8%;margin-left:82%;background:var(--doc-accent-ink);"></span></div><span class="ms">1640ms+</span></div>
+      </div>
+      <pre><span class="c">// count-up easing</span>
+duration  = clamp(amount * <span class="s">25</span>, <span class="s">600</span>, <span class="s">1400</span>);
+ease      = <span class="s">'cubicOut'</span>;
+displayed = floor(amount * easeCubicOut(t / duration));
+<span class="c">// at 90% mark, fire haptic 'success' impact (single short)</span></pre>
+      <p class="hint">
+        Count-up'ı <b>çok hızlı yapma</b>: kullanıcı sayıyı görmeli. ~25ms/XP iyi bir
+        rate. Confetti SVG (24 line, 5 renk rotating) tek burst — daha fazlası slop.
+      </p>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Mini toast (her doğru cevapta)</h3>
+      <p style="font-size:13px;color:var(--doc-muted);line-height:1.55;margin:0 0 12px;">
+        Position: absolute top 70pt, centered. 24pt radius gold pill, bolt icon + "+10 XP".
+        Enter: scale 0.6 → 1 + slide-down 12pt, 220ms spring.
+        Stay: 800ms.
+        Exit: fade + scale 1 → 0.9, 200ms.
+        Toplam: ~1.4s. Sonraki alıştırmaya geçişle çakışmaz çünkü "DEVAM" bekleme süresi içinde gerçekleşir.
+      </p>
+    </div>
+  </section>
+
+  <!-- 10 CHEST -->
+  <section id="chest">
+    <div class="num">10</div>
+    <h2>3-tap reward chest · variable reward</h2>
+    <p class="desc">
+      Completion ekranındaki "SÜRPRİZ ÖDÜLÜ AÇ" CTA'sından geçer. Kullanıcı kutuya
+      <b>3 kez dokunmalı</b>. Her tap haptic + scale + tilt; üçüncü tap'te kapak açılır,
+      konfeti patlar, içeriden XP/gem rozeti yükselir. Variable reward (Skinner box):
+      her zaman aynı şey değil — 25/40/60 XP veya 5/10 gem rasgele.
+    </p>
+
+    <div class="card">
+      <table class="smt">
+        <tr><th>State</th><th>Tap count</th><th>Visual</th><th>Haptic</th><th>Audio</th></tr>
+        <tr><td><span class="pill zz">closed</span></td><td>0</td><td>180pt chest · drop shadow · 👆 tap-hint pulse</td><td>—</td><td>—</td></tr>
+        <tr><td><span class="pill ok">tapped 1</span></td><td>1</td><td>scale 1.04 · rotate +3°</td><td>light impact</td><td>"thunk" 80ms</td></tr>
+        <tr><td><span class="pill ok">tapped 2</span></td><td>2</td><td>scale 1.08 · rotate −3°</td><td>medium impact</td><td>"thunk" 80ms (higher pitch)</td></tr>
+        <tr><td><span class="pill gold">opening</span></td><td>3</td><td>lid rotates −110° (600ms spring) + confetti SVG burst + glow filter</td><td>success notification</td><td>"chime" 600ms</td></tr>
+        <tr><td><span class="pill gold">opened</span></td><td>—</td><td>200pt chest · prize badge yükselir (translate-y −20pt, 400ms ease-out, 200ms delay)</td><td>—</td><td>—</td></tr>
+      </table>
+
+      <p class="hint">
+        <b>Neden 3 tap?</b> 1 tap fazla anlık (eylem hissi yok), 5 tap fazla zorlama
+        (frustration). 3 tap "ben yaptım" hissi verir, anticipation üretir, ödülü
+        beklenir kılar. <b>Tap progress dots</b> alttadır (3 dot, dolanlar accent +
+        scale 1.2). Variable reward yelpazesi (XP odaklı):
+      </p>
+
+      <table class="copytbl" style="margin-top:8px;">
+        <tr><th>Tier</th><th>Olasılık</th><th>Prize</th><th>Toast tone</th></tr>
+        <tr><td>common</td><td>%55</td><td>+25 XP</td><td>"Güzel ödül!"</td></tr>
+        <tr><td>uncommon</td><td>%30</td><td>+40 XP</td><td>"Bu iyiydi!"</td></tr>
+        <tr><td>rare</td><td>%12</td><td>+60 XP</td><td>"Ne şanslısın!"</td></tr>
+        <tr><td>jackpot</td><td>%3</td><td>+100 XP + 10 gem</td><td>"İnanılmaz! Jackpot!" + extra confetti</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 11 ENCOURAGEMENT -->
+  <section id="enc">
+    <div class="num">11</div>
+    <h2>Encouragement interstitials · mid-flow ödül anları</h2>
+    <p class="desc">
+      Ders ortasında otomatik beliren tek-ekran ara-sayfalar. <b>1.6s sonra otomatik</b>
+      bir sonraki alıştırmaya geçer (CTA yok — kullanıcıyı durdurmaz, sadece motive eder).
+      5 varyant:
+    </p>
+
+    <div class="card">
+      <table class="smt">
+        <tr><th>Variant</th><th>Trigger</th><th>Icon</th><th>Title</th><th>Sub-text</th></tr>
+        <tr><td><code>combo3</code></td><td>combo === 3 ilk kez</td><td>flame 96pt #FF8A00</td><td>Süper gidiyorsun!</td><td>Aklında kaldı, devam et.</td></tr>
+        <tr><td><code>combo5</code></td><td>combo === 5 ilk kez</td><td>flame 96pt #FF4F00</td><td>Yangın ettin!</td><td>Combo bonusu: +5 XP</td></tr>
+        <tr><td><code>halfway</code></td><td>currentExercise === N/2</td><td>target 96pt #3FA9F5</td><td>Yarısı bitti!</td><td>Aynı hızla devam et.</td></tr>
+        <tr><td><code>almostDone</code></td><td>currentExercise === N-1</td><td>flame 96pt gold</td><td>Son bir adım!</td><td>Bitirmek üzeresin.</td></tr>
+        <tr><td><code>noMistakes</code></td><td>halfway && correct === answered</td><td>star 96pt gold</td><td>Hâlâ hatasız!</td><td>Bu dersi mükemmel bitir, +10 XP bonus.</td></tr>
+      </table>
+      <p class="hint">
+        <b>Trigger önceliği</b>: aynı anda iki tetik düşerse <code class="inline">noMistakes</code>
+        ⪢ <code class="inline">combo5</code> ⪢ <code class="inline">halfway</code> ⪢ <code class="inline">combo3</code>.
+        <b>Render</b>: 200pt soft-tinted circle (variant rengi @ 10–20%) + 96pt icon ortada,
+        eyebrow + title + sub. Auto-advance dot bottom: animated pulse + "Devam ediliyor…".
+      </p>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Animasyon timeline</h3>
+      <div class="timing-bar">
+        <div class="timing"><span class="lab">enter (full screen)</span><div class="bar"><span style="width:14%;background:var(--doc-accent);"></span></div><span class="ms">0–280ms</span></div>
+        <div class="timing"><span class="lab">icon scale 0.6→1</span><div class="bar"><span style="width:18%;margin-left:8%;background:var(--doc-flame);"></span></div><span class="ms">160–420ms</span></div>
+        <div class="timing"><span class="lab">title slide-up</span><div class="bar"><span style="width:16%;margin-left:24%;background:var(--doc-gold);"></span></div><span class="ms">320–560ms</span></div>
+        <div class="timing"><span class="lab">stay</span><div class="bar"><span style="width:42%;margin-left:40%;background:var(--doc-divider);"></span></div><span class="ms">560–1400ms</span></div>
+        <div class="timing"><span class="lab">exit</span><div class="bar"><span style="width:16%;margin-left:82%;background:var(--doc-accent-ink);"></span></div><span class="ms">1400–1640ms</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 COMPLETION -->
+  <section id="completion">
+    <div class="num">12</div>
+    <h2>Lesson completion · 4 metric + chest CTA</h2>
+    <p class="desc">
+      Ders bitince hemen bu ekran. Üstte konfeti SVG + 110pt yeşil check rozeti
+      (8pt accentInk shelf). Altta eyebrow + lesson adı, sonra <b>4 metric kartı 2×2
+      grid</b> ile ödülün dökümünü gösterir. Altta streak nudge bandı, en altta CTA:
+      "SÜRPRİZ ÖDÜLÜ AÇ".
+    </p>
+
+    <div class="card">
+      <table class="smt">
+        <tr><th>Metric</th><th>Icon</th><th>Format</th><th>Source</th></tr>
+        <tr><td>TOPLAM XP</td><td>bolt #FFC83D</td><td>+N</td><td>xpEarned</td></tr>
+        <tr><td>DOĞRULUK</td><td>target #3FA9F5</td><td>%N</td><td>round(correct/answered × 100)</td></tr>
+        <tr><td>SÜRE</td><td>clock #9B6EFF</td><td>M:SS</td><td>completedAt − startedAt</td></tr>
+        <tr><td>EN UZUN COMBO</td><td>flame #FF8A00</td><td>×N</td><td>comboHigh</td></tr>
+      </table>
+      <p class="hint">
+        <b>Renk farklılaştırması</b>: 4 metric kartının iconu farklı renkte (gold/blue/purple/flame).
+        Kart kendisi nötr (surface + divider border) — slot machine slop'u değil. Sayı
+        rengi de icon ile eşleşir. Streak nudge bandı en altta: 36pt flame circle +
+        "5 günlük seri / Yarın da gel, seriyi bozma."
+      </p>
+    </div>
+  </section>
+
+  <!-- 13 EDGE -->
+  <section id="edge">
+    <div class="num">13</div>
+    <h2>Edge states · heart out, lesson fail</h2>
+    <p class="desc">
+      İki kritik bottom sheet. Backdrop dim 50% black; sheet rounded-top 24pt.
+      Drag handle (36×4pt divider). Aksiyonlar 3 katmanlı: primary (Pro/restart),
+      secondary (gem buy / re-read), tertiary (free fallback / dismiss).
+    </p>
+
+    <div class="row2">
+      <div class="card">
+        <h3>Heart out</h3>
+        <p style="font-size:13px;color:var(--doc-muted);line-height:1.6;">
+          5 boş kalp outline row · "Kalbin bitti." · "3 saat 42 dakika içinde kalplerin yenilenecek." · 3 CTA:
+        </p>
+        <ol style="font-size:13px;line-height:1.7;color:var(--doc-fg);margin:8px 0 0 16px;padding:0;">
+          <li><b>SINIRSIZ KALP — PRO'YA GEÇ</b> (accent face + shelf)</li>
+          <li>40 GEM İLE BİR KALP AL (surface + divider border)</li>
+          <li><span style="color:var(--doc-muted);">Pratik yapıp kalp kazan</span> (transparent text)</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>Lesson fail (3+ heart loss)</h3>
+        <p style="font-size:13px;color:var(--doc-muted);line-height:1.6;">
+          😅 emoji · "Bu sefer olmadı." · "Hata bilgi demek. Ders konusunu tekrar gözden geçir, yeniden dene." · 2 CTA:
+        </p>
+        <ol style="font-size:13px;line-height:1.7;color:var(--doc-fg);margin:8px 0 0 16px;padding:0;">
+          <li><b>BAŞTAN BAŞLA</b> (accent face + shelf)</li>
+          <li>KONUYU TEKRAR OKU (surface + divider border)</li>
+        </ol>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:12px;color:var(--doc-muted);">
+      <b>Tone hassasiyeti</b>: "fail" bile suçlamalı değil. "Bu sefer olmadı." +
+      "Hata bilgi demek." — duolingo'nun "you've run out of hearts" rakamından farklı
+      olarak <b>geri-alabilir</b> bir an. Sheet kapanması: drag down veya backdrop tap.
+    </p>
+  </section>
+
+  <!-- 14 TYPE & COLOR -->
+  <section id="type">
+    <div class="num">14</div>
+    <h2>Type scale &amp; color tokens (practice-specific)</h2>
+    <p class="desc">
+      Spec - Lesson Explanation'daki type scale temel — burada sadece <i>practice'e
+      özgü</i> ek satırlar var: count-up XP rakamı, combo ×N, mic mikrofon altı
+      durum metni, metric değer.
+    </p>
+
+    <div class="card">
+      <div class="type-row">
+        <div class="type-name">XP huge</div>
+        <div class="type-sample" style="font-size:56px;font-weight:700;letter-spacing:-0.04em;color:#7A4F00;">+25</div>
+        <div class="type-spec">56pt / 700 / -0.04em<br>color: gold-ink (#7A4F00)</div>
+      </div>
+      <div class="type-row">
+        <div class="type-name">Metric value</div>
+        <div class="type-sample" style="font-size:28px;font-weight:700;letter-spacing:-0.02em;color:#3FA9F5;">%92</div>
+        <div class="type-spec">28pt / 700 / -0.02em<br>color: tone-of-metric</div>
+      </div>
+      <div class="type-row">
+        <div class="type-name">Combo pill</div>
+        <div class="type-sample" style="font-size:13px;font-weight:700;color:#D87000;">×3</div>
+        <div class="type-spec">13pt / 700 / -0.01em<br>color: flame-ink</div>
+      </div>
+      <div class="type-row">
+        <div class="type-name">Encouragement title</div>
+        <div class="type-sample" style="font-size:32px;font-weight:700;letter-spacing:-0.015em;">Süper gidiyorsun!</div>
+        <div class="type-spec">32pt / 700 / -0.015em<br>color: textPrimary</div>
+      </div>
+      <div class="type-row">
+        <div class="type-name">Eyebrow (uppercase)</div>
+        <div class="type-sample" style="font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--doc-muted);">3 ÜST ÜSTE</div>
+        <div class="type-spec">12pt / 700 / +0.14em<br>color: textTertiary</div>
+      </div>
+      <div class="type-row">
+        <div class="type-name">Glyph (typing)</div>
+        <div class="type-sample" style="font-size:56px;font-weight:700;letter-spacing:-0.02em;">がくせい</div>
+        <div class="type-spec">56pt / 700 / -0.02em<br>color: textPrimary</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Practice-specific color tokens</h3>
+      <div class="token-grid">
+        <div class="token"><div class="swatch" style="background:#FFC83D;"></div><div class="meta"><div class="name">gold</div><div class="hex">#FFC83D · XP rozet</div></div></div>
+        <div class="token"><div class="swatch" style="background:#7A4F00;"></div><div class="meta"><div class="name">gold-ink</div><div class="hex">#7A4F00 · XP rakam</div></div></div>
+        <div class="token"><div class="swatch" style="background:#FF8A00;"></div><div class="meta"><div class="name">flame</div><div class="hex">#FF8A00 · combo · streak</div></div></div>
+        <div class="token"><div class="swatch" style="background:#D87000;"></div><div class="meta"><div class="name">flame-ink</div><div class="hex">#D87000 · combo text</div></div></div>
+        <div class="token"><div class="swatch" style="background:#3FA9F5;"></div><div class="meta"><div class="name">azure</div><div class="hex">#3FA9F5 · accuracy · target</div></div></div>
+        <div class="token"><div class="swatch" style="background:#9B6EFF;"></div><div class="meta"><div class="name">violet</div><div class="hex">#9B6EFF · time · clock</div></div></div>
+        <div class="token"><div class="swatch" style="background:#FF4B4B;"></div><div class="meta"><div class="name">danger</div><div class="hex">#FF4B4B · heart · wrong</div></div></div>
+        <div class="token"><div class="swatch" style="background:#A86A2C;"></div><div class="meta"><div class="name">chest-body</div><div class="hex">#A86A2C · chest dış</div></div></div>
+        <div class="token"><div class="swatch" style="background:#7A4A1F;"></div><div class="meta"><div class="name">chest-band</div><div class="hex">#7A4A1F · chest bant</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15 SCREENS -->
+  <section id="screens">
+    <div class="num">15</div>
+    <h2>Screens · light + dark</h2>
+    <p class="desc">14 ekran — 7 light + 7 dark. Soldan sağa: 5 alıştırma türü idle/answered + tatmin sistem ekranları (encourage, completion, chest, XP, edge).</p>
+
+    <div class="phones" id="phones-light"></div>
+
+    <h3 style="margin-top:48px;font-size:18px;font-weight:700;letter-spacing:-0.01em;">Dark mode</h3>
+    <div class="phones" id="phones-dark"></div>
+  </section>
+
+  <!-- 16 TOKENS + ANTI -->
+  <section id="tokens">
+    <div class="num">16</div>
+    <h2>Tokens (JSON) + anti-examples</h2>
+    <p class="desc">Implementation tokens + 14 anti-example.</p>
+
+    <div class="card">
+      <h3>tokens.json</h3>
+      <pre><span class="k">{</span>
+  <span class="s">"flow"</span>: <span class="k">{</span>
+    <span class="s">"exercises"</span>: <span class="s">10</span>,
+    <span class="s">"interstitial.triggers"</span>: <span class="k">[</span><span class="s">"combo3"</span>, <span class="s">"combo5"</span>, <span class="s">"halfway"</span>, <span class="s">"almostDone"</span>, <span class="s">"noMistakes"</span><span class="k">]</span>,
+    <span class="s">"encourage.duration"</span>: <span class="s">1640</span>
+  <span class="k">}</span>,
+  <span class="s">"chrome"</span>: <span class="k">{</span>
+    <span class="s">"height"</span>: <span class="s">56</span>,
+    <span class="s">"progress.height"</span>: <span class="s">14</span>,
+    <span class="s">"progress.radius"</span>: <span class="s">7</span>,
+    <span class="s">"progress.transition"</span>: <span class="s">"320ms cubic-bezier(.2,.8,.2,1)"</span>,
+    <span class="s">"pill.height"</span>: <span class="s">28</span>,
+    <span class="s">"combo.minDisplay"</span>: <span class="s">2</span>,
+    <span class="s">"combo.flameMin"</span>: <span class="s">18</span>, <span class="s">"combo.flameMax"</span>: <span class="s">24</span>
+  <span class="k">}</span>,
+  <span class="s">"feedback"</span>: <span class="k">{</span>
+    <span class="s">"band.radius"</span>: <span class="s">24</span>,
+    <span class="s">"band.padding"</span>: <span class="s">"20 20 12"</span>,
+    <span class="s">"icon.size"</span>: <span class="s">44</span>
+  <span class="k">}</span>,
+  <span class="s">"cta"</span>: <span class="k">{</span>
+    <span class="s">"height"</span>: <span class="s">52</span>, <span class="s">"shelf"</span>: <span class="s">8</span>,
+    <span class="s">"radius"</span>: <span class="s">16</span>,
+    <span class="s">"font.size"</span>: <span class="s">15</span>, <span class="s">"font.weight"</span>: <span class="s">700</span>, <span class="s">"font.tracking"</span>: <span class="s">"0.08em"</span>
+  <span class="k">}</span>,
+  <span class="s">"xp"</span>: <span class="k">{</span>
+    <span class="s">"base"</span>: <span class="s">10</span>,
+    <span class="s">"comboBonus.threshold"</span>: <span class="s">3</span>,
+    <span class="s">"comboBonus.amount"</span>: <span class="s">5</span>,
+    <span class="s">"perfectBonus"</span>: <span class="s">10</span>,
+    <span class="s">"countup.msPerXP"</span>: <span class="s">25</span>,
+    <span class="s">"countup.minMs"</span>: <span class="s">600</span>,
+    <span class="s">"countup.maxMs"</span>: <span class="s">1400</span>
+  <span class="k">}</span>,
+  <span class="s">"chest"</span>: <span class="k">{</span>
+    <span class="s">"taps"</span>: <span class="s">3</span>,
+    <span class="s">"prizes"</span>: <span class="k">[</span>
+      <span class="k">{</span><span class="s">"prob"</span>: <span class="s">0.55</span>, <span class="s">"xp"</span>: <span class="s">25</span><span class="k">}</span>,
+      <span class="k">{</span><span class="s">"prob"</span>: <span class="s">0.30</span>, <span class="s">"xp"</span>: <span class="s">40</span><span class="k">}</span>,
+      <span class="k">{</span><span class="s">"prob"</span>: <span class="s">0.12</span>, <span class="s">"xp"</span>: <span class="s">60</span><span class="k">}</span>,
+      <span class="k">{</span><span class="s">"prob"</span>: <span class="s">0.03</span>, <span class="s">"xp"</span>: <span class="s">100</span>, <span class="s">"gem"</span>: <span class="s">10</span><span class="k">}</span>
+    <span class="k">]</span>,
+    <span class="s">"lid.openDuration"</span>: <span class="s">600</span>,
+    <span class="s">"lid.openEasing"</span>: <span class="s">"cubic-bezier(.34,1.56,.64,1)"</span>
+  <span class="k">}</span>,
+  <span class="s">"hearts"</span>: <span class="k">{</span>
+    <span class="s">"max"</span>: <span class="s">5</span>,
+    <span class="s">"refillHours"</span>: <span class="s">4</span>,
+    <span class="s">"gemPerHeart"</span>: <span class="s">40</span>
+  <span class="k">}</span>,
+  <span class="s">"haptic"</span>: <span class="k">{</span>
+    <span class="s">"correct"</span>: <span class="s">"impactLight"</span>,
+    <span class="s">"wrong"</span>: <span class="s">"notificationWarning"</span>,
+    <span class="s">"chest.tap"</span>: <span class="k">[</span><span class="s">"impactLight"</span>, <span class="s">"impactMedium"</span>, <span class="s">"notificationSuccess"</span><span class="k">]</span>,
+    <span class="s">"xp.complete"</span>: <span class="s">"impactLight"</span>
+  <span class="k">}</span>
+<span class="k">}</span></pre>
+    </div>
+
+    <div class="sub-h" style="margin-top:32px;">Anti-examples · 14 yapma</div>
+    <div class="anti">
+      <div class="anti-card anti-no"><div class="anti-tag">YAPMA</div><div class="what">Combo pill her zaman görünür</div><div class="why">Combo &lt;2'de kart fazlalık. Sadece kazanmaya başlayınca beliren ödül hissi vermek için conditional.</div></div>
+      <div class="anti-card anti-yes"><div class="anti-tag">YAP</div><div class="what">Combo ≥2'de spring entry</div><div class="why">Spring entry "yeni bir şey kazandın" semantik. Scale 0.6→1, 240ms.</div></div>
+
+      <div class="anti-card anti-no"><div class="anti-tag">YAPMA</div><div class="what">Yanlış cevapta agresif kırmızı + sarsma</div><div class="why">Cezalandırma sloppy. Band kırmızı, doğru cevabı göster, "Bu sefer olmadı" tonu — utandırma.</div></div>
+      <div class="anti-card anti-yes"><div class="anti-tag">YAP</div><div class="what">Wrong band: kırmızı icon + doğru cevap altta</div><div class="why">Bilgi öncelikli. "Doğru cevap: ねこ (neko)" — kullanıcı aklında tutar.</div></div>
+
+      <div class="anti-card anti-no"><div class="anti-tag">YAPMA</div><div class="what">XP count-up 200ms'de tamamlanır</div><div class="why">Çok hızlı, sayıyı görme şansı yok. Dopamine spike olmaz. Çok yavaş da (3s+) sıkar.</div></div>
+      <div class="anti-card anti-yes"><div class="anti-tag">YAP</div><div class="what">25ms/XP rate (clamp 600–1400ms)</div><div class="why">+10 XP → 1s, +60 XP → 1.4s. Hem görülür hem sürdürülür.</div></div>
+
+      <div class="anti-card anti-no"><div class="anti-tag">YAPMA</div><div class="what">Chest 1 tap'te açılır</div><div class="why">Anticipation yok. Variable reward'un büyüsü beklemede.</div></div>
+      <div class="anti-card anti-yes"><div class="anti-tag">YAP</div><div class="what">3 tap, her birinde haptic + scale + sound</div><div class="why">Eylem hissi + escalating anticipation + final reveal jackpot hissi.</div></div>
+
+      <div class="anti-card anti-no"><div class="anti-tag">YAPMA</div><div class="what">Encourage interstitial CTA içerir</div><div class="why">Akışı durdurur, fazladan tap. Auto-advance + rapid is the point.</div></div>
+      <div class="anti-card anti-yes"><div class="anti-tag">YAP</div><div class="what">1.6s sonra otomatik geçer · "Devam ediliyor…" pulse dot</div><div class="why">Zorunluluk yok, sadece nefes anı.</div></div>
+
+      <div class="anti-card anti-no"><div class="anti-tag">YAPMA</div><div class="what">Her 3'lük combo'da encourage tetiklenir</div><div class="why">3, 6, 9'da art arda interstitial = annoying. Per session bir kez.</div></div>
+      <div class="anti-card anti-yes"><div class="anti-tag">YAP</div><div class="what">combo3, combo5 ilk kez tetiklenir, sonra sessiz</div><div class="why">Combo arttıkça yine pill büyüsün, ama screen alma yok.</div></div>
+
+      <div class="anti-card anti-no"><div class="anti-tag">YAPMA</div><div class="what">Speaking zorunlu, atlanmaz</div><div class="why">Toplu taşımada, geç saatte → drop. Mic permission denied → flow kırılır.</div></div>
+      <div class="anti-card anti-yes"><div class="anti-tag">YAP</div><div class="what">Speaking opsiyonel · "Şimdi konuşamıyorum" linki her zaman</div><div class="why">XP bile tam alır — pratiklik > zorlama.</div></div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="components/palettes.js"></script>
+<script type="text/babel" src="components/ios-frame.jsx"></script>
+<script type="text/babel" src="components/paktly-alistirma.jsx"></script>
+<script type="text/babel" src="components/paktly-tatmin.jsx"></script>
+
+<style>
+  @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+  @keyframes pulse-ring {
+    0% { transform: scale(1); opacity: 0.7; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+  @keyframes tap-hint {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+</style>
+
+<script type="text/babel">
+  function App() {
+    const L = window.PALETTES.nature.light;
+    const D = window.PALETTES.nature.dark;
+    const screens = (T) => [
+      { Comp: () => <PaktlyExMC tokens={T}/>, title: '1. Multiple choice · idle', sub: 'Image variant · 4 picks' },
+      { Comp: () => <PaktlyExMC state="correct" picked={2} tokens={T}/>, title: '1a. MC · correct', sub: 'Green band + DEVAM' },
+      { Comp: () => <PaktlyExWordBank tokens={T}/>, title: '2. Word bank', sub: 'Tap to translate · 3D chips' },
+      { Comp: () => <PaktlyExListening tokens={T}/>, title: '3. Listening', sub: 'Big speaker + slow + 3 picks' },
+      { Comp: () => <PaktlyExTyping state="wrong" tokens={T}/>, title: '4. Typing · wrong', sub: 'Red band · solution shown' },
+      { Comp: () => <PaktlyEncourage variant="combo3" tokens={T}/>, title: '5. Encourage · combo3', sub: '"Süper gidiyorsun!" 1.6s' },
+      { Comp: () => <PaktlyCompletion tokens={T}/>, title: '6. Completion', sub: '4 metric + chest CTA' },
+      { Comp: () => <PaktlyChest state="opened" prize={{kind:'xp', amount:25}} tokens={T}/>, title: '7. Chest · opened', sub: '+25 XP reveal' },
+    ];
+
+    return (
+      <>
+        <div id="phones-light-mount">
+          {screens(L).map((s, i) => (
+            <div className="phone-cap" key={i}>
+              <IOSDevice width={390} height={844} scale={0.62}>
+                <s.Comp/>
+              </IOSDevice>
+              <div className="cap-label">
+                <b>{s.title}</b>
+                {s.sub}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div id="phones-dark-mount">
+          {screens(D).map((s, i) => (
+            <div className="phone-cap" key={i}>
+              <IOSDevice width={390} height={844} scale={0.62}>
+                <s.Comp/>
+              </IOSDevice>
+              <div className="cap-label">
+                <b>{s.title}</b>
+                {s.sub}
+              </div>
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  }
+
+  // Render light then move dark cards to dark container
+  const App2 = () => {
+    const L = window.PALETTES.nature.light;
+    const D = window.PALETTES.nature.dark;
+    const screens = (T) => [
+      { Comp: () => <PaktlyExMC tokens={T}/>, title: '1. MC · idle', sub: 'Image variant · 4 picks' },
+      { Comp: () => <PaktlyExMC state="correct" picked={2} tokens={T}/>, title: '1a. MC · correct', sub: 'Green band + DEVAM' },
+      { Comp: () => <PaktlyExWordBank tokens={T}/>, title: '2. Word bank', sub: 'Tap to translate · 3D chips' },
+      { Comp: () => <PaktlyExListening tokens={T}/>, title: '3. Listening', sub: 'Big speaker + slow + 3 picks' },
+      { Comp: () => <PaktlyExTyping state="wrong" tokens={T}/>, title: '4. Typing · wrong', sub: 'Red band · solution' },
+      { Comp: () => <PaktlyEncourage variant="combo3" tokens={T}/>, title: '5. Encourage · combo3', sub: '"Süper gidiyorsun!"' },
+      { Comp: () => <PaktlyCompletion tokens={T}/>, title: '6. Completion', sub: '4 metric + chest CTA' },
+      { Comp: () => <PaktlyChest state="opened" prize={{kind:'xp', amount:25}} tokens={T}/>, title: '7. Chest · opened', sub: '+25 XP reveal' },
+    ];
+    return null;
+  };
+
+  function PhonesLight() {
+    const T = window.PALETTES.nature.light;
+    const screens = [
+      { Comp: () => <PaktlyExMC tokens={T}/>, title: '1. MC · idle', sub: 'Image · 4 picks' },
+      { Comp: () => <PaktlyExMC state="correct" picked={2} tokens={T}/>, title: '1a. MC · correct', sub: 'Green band + DEVAM' },
+      { Comp: () => <PaktlyExWordBank tokens={T}/>, title: '2. Word bank', sub: 'Tap-to-translate' },
+      { Comp: () => <PaktlyExListening tokens={T}/>, title: '3. Listening', sub: 'Speaker + slow + picks' },
+      { Comp: () => <PaktlyExTyping state="wrong" tokens={T}/>, title: '4. Typing · wrong', sub: 'Red band + solution' },
+      { Comp: () => <PaktlyEncourage variant="combo3" tokens={T}/>, title: '5. Encourage', sub: '"Süper gidiyorsun!"' },
+      { Comp: () => <PaktlyCompletion tokens={T}/>, title: '6. Completion', sub: '4 metric + chest CTA' },
+      { Comp: () => <PaktlyChest state="opened" prize={{kind:'xp', amount:25}} tokens={T}/>, title: '7. Chest · opened', sub: '+25 XP reveal' },
+    ];
+    return (
+      <>
+        {screens.map((s, i) => (
+          <div className="phone-cap" key={i}>
+            <IOSDevice width={390} height={844} scale={0.62}>
+              <s.Comp/>
+            </IOSDevice>
+            <div className="cap-label">
+              <b>{s.title}</b>
+              {s.sub}
+            </div>
+          </div>
+        ))}
+      </>
+    );
+  }
+
+  function PhonesDark() {
+    const T = window.PALETTES.nature.dark;
+    const screens = [
+      { Comp: () => <PaktlyExMC tokens={T}/>, title: '1. MC · idle', sub: 'Image · 4 picks' },
+      { Comp: () => <PaktlyExMC state="wrong" picked={0} tokens={T}/>, title: '1a. MC · wrong', sub: 'Red band + solution' },
+      { Comp: () => <PaktlyExWordBank state="correct" tokens={T}/>, title: '2. Word bank · correct', sub: 'All chips placed' },
+      { Comp: () => <PaktlyExListening tokens={T}/>, title: '3. Listening', sub: 'Big speaker + slow' },
+      { Comp: () => <PaktlyExSpeaking state="recording" tokens={T}/>, title: '4. Speaking · recording', sub: 'Mic pulse rings' },
+      { Comp: () => <PaktlyEncourage variant="halfway" tokens={T}/>, title: '5. Encourage · halfway', sub: '"Yarısı bitti!"' },
+      { Comp: () => <PaktlyHeartOut tokens={T}/>, title: '6. Heart out sheet', sub: '3 CTAs · paywall + gem + free' },
+      { Comp: () => <PaktlyXPGain amount={45} subtitle="Mükemmel ders!" tokens={T}/>, title: '7. XP gain page', sub: '+45 XP · confetti + badge' },
+    ];
+    return (
+      <>
+        {screens.map((s, i) => (
+          <div className="phone-cap" key={i}>
+            <IOSDevice width={390} height={844} scale={0.62}>
+              <s.Comp/>
+            </IOSDevice>
+            <div className="cap-label">
+              <b>{s.title}</b>
+              {s.sub}
+            </div>
+          </div>
+        ))}
+      </>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('phones-light')).render(<PhonesLight/>);
+  ReactDOM.createRoot(document.getElementById('phones-dark')).render(<PhonesDark/>);
+</script>
+
+</body>
+</html>
