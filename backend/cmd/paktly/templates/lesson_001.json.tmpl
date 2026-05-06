@@ -1,0 +1,31 @@
+{
+  "id": "001-getting-started",
+  "title": "Getting started with {{.LanguageName}}",
+  "description": "A first taste — one explanation, one vocabulary item, one flashcard. Replace this with your real material.",
+  "estimatedMinutes": 5,
+  "blocks": [
+    {
+      "type": "explanation",
+      "text": "Welcome to your first **{{.LanguageName}}** pack. This file is editable — open `lessons/001-getting-started.json` in your editor and start writing real lessons. The Paktly format supports markdown in explanation blocks, so feel free to use **bold**, *italics*, and [links](https://paktly.dev)."
+    },
+    {
+      "type": "vocabulary",
+      "items": [
+        {
+          "target": "{{.SampleTarget}}",
+          "translation": "hello"{{if .LanguageNativeName}},
+          "notes": "A basic greeting in {{.LanguageNativeName}}."{{end}}
+        }
+      ]
+    },
+    {
+      "type": "exercise",
+      "exerciseType": "flashcard",
+      "data": {
+        "front": { "text": "{{.SampleTarget}}" },
+        "back":  { "text": "hello" },
+        "hint": "It's a greeting"
+      }
+    }
+  ]
+}

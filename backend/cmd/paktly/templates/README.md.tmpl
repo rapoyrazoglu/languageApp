@@ -1,0 +1,68 @@
+# {{.Name}}
+
+{{if .Description}}{{.Description}}{{else}}A {{.LanguageName}} pack for the Paktly language platform.{{end}}
+
+## Pack metadata
+
+| Field | Value |
+|---|---|
+| Pack ID | `{{.ID}}` |
+| Target language | {{.LanguageName}} ({{.LanguageCode}}) |
+| UI language | {{.UILanguage}} |
+| Level | {{.Level}} |
+| Author | {{.AuthorName}} |
+| License | CC-BY-4.0 |
+
+## Editing this pack
+
+Lessons live under `lessons/`. Each is a JSON file matching the
+[Paktly pack format](https://github.com/rapoyrazoglu/languageApp/blob/main/docs/PACK_FORMAT.md).
+
+The shipped sample lesson (`lessons/001-getting-started.json`) shows the
+three block types — explanation, vocabulary, and exercise. Replace its
+content with your real material; the validator will tell you if anything
+is off.
+
+Drop audio recordings into `media/audio/` and reference them by relative
+path from inside lesson JSON, e.g. `"audio": "media/audio/hello.mp3"`.
+
+## Validate
+
+Always validate before publishing — saves you a round-trip.
+
+```
+paktly pack validate .
+```
+
+## Publish
+
+When you're ready, push to the registry:
+
+```
+paktly pack publish .
+```
+
+You'll need to be logged in (`paktly login`) once.
+
+## Versioning
+
+Bump `manifest.json`'s `version` whenever you publish a new release. The
+registry refuses to overwrite an existing `id@version` — bug fixes ship
+as a new patch version.
+
+- **MAJOR** (`1.0.0 → 2.0.0`): a lesson was deleted or its id changed.
+- **MINOR** (`0.1.0 → 0.2.0`): new lessons added, no breaking changes.
+- **PATCH** (`0.1.0 → 0.1.1`): typo fix, audio re-recording, no content change.
+
+## License
+
+This pack is licensed under [CC-BY-4.0](LICENSE) — anyone can copy,
+share, and adapt the content as long as they credit you. Edit the
+LICENSE file or `manifest.json`'s `license` field if you'd rather use
+a different license.
+
+## Contributing
+
+Found a typo? Improvement idea? Pull requests welcome on the upstream
+repo if this pack is open-source. Otherwise open an issue, contact the
+author directly, or fork the pack and republish under your own ID.

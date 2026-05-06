@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.2.0",
+  "id": "{{.ID}}",
+  "name": "{{.Name}}",
+  "version": "0.1.0",
+  "description": "{{.Description}}",
+  "language": {
+    "code": "{{.LanguageCode}}",
+    "name": "{{.LanguageName}}"{{if .LanguageNativeName}},
+    "nativeName": "{{.LanguageNativeName}}"{{end}},
+    "direction": "ltr"
+  },
+  "uiLanguage": "{{.UILanguage}}",
+  "level": "{{.Level}}",
+  "author": {
+    "name": "{{.AuthorName}}"
+  },
+  "license": "CC-BY-4.0",
+  "tags": [],
+  "lessons": [
+    {
+      "id": "001-getting-started",
+      "file": "lessons/001-getting-started.json",
+      "title": "Getting started",
+      "order": 1
+    }
+  ]
+}
