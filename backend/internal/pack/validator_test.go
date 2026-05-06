@@ -347,8 +347,8 @@ func vocabLessonWithExamples() map[string]any {
 func TestValidate_V11_ManifestAndExamples_HappyPath(t *testing.T) {
 	v := newValidator(t)
 	z := buildZip(t, "", map[string]any{
-		"manifest.json":           minimalManifestV11(),
-		"lessons/001.json":        vocabLessonWithExamples(),
+		"manifest.json":              minimalManifestV11(),
+		"lessons/001.json":           vocabLessonWithExamples(),
 		"media/audio/konnichiwa.mp3": []byte{0xff, 0xfb, 0x90, 0x44}, // tiny mp3-ish header
 		"media/audio/example-1.mp3":  []byte{0xff, 0xfb, 0x90, 0x44},
 	})
@@ -444,9 +444,9 @@ func minimalManifestV12() map[string]any {
 	return m
 }
 
-// vocabLessonV12_TranslationsMap exercises the multi-locale translation map:
+// vocabLessonV12TranslationsMap exercises the multi-locale translation map:
 // the vocab item drops the legacy `translation` and uses only `translations`.
-func vocabLessonV12_TranslationsMap() map[string]any {
+func vocabLessonV12TranslationsMap() map[string]any {
 	return map[string]any{
 		"id":    "001",
 		"title": "Greetings",
@@ -484,7 +484,7 @@ func TestValidate_V12_TranslationsMap_HappyPath(t *testing.T) {
 	v := newValidator(t)
 	z := buildZip(t, "", map[string]any{
 		"manifest.json":    minimalManifestV12(),
-		"lessons/001.json": vocabLessonV12_TranslationsMap(),
+		"lessons/001.json": vocabLessonV12TranslationsMap(),
 	})
 	res := v.ValidateZip(z)
 	if !res.Ok() {
@@ -576,8 +576,8 @@ func dialogueKanjiGrammarLesson() map[string]any {
 						"audio": "media/audio/dialogue-1-a.mp3",
 					},
 					map[string]any{
-						"speaker": "B",
-						"target":  "山田です。よろしく。",
+						"speaker":     "B",
+						"target":      "山田です。よろしく。",
 						"translation": "I'm Yamada. Pleased to meet you.",
 					},
 				},
@@ -650,8 +650,8 @@ func dialogueKanjiGrammarLesson() map[string]any {
 func TestValidate_V12_NewBlocks_HappyPath(t *testing.T) {
 	v := newValidator(t)
 	z := buildZip(t, "", map[string]any{
-		"manifest.json":              minimalManifestV12(),
-		"lessons/001.json":           dialogueKanjiGrammarLesson(),
+		"manifest.json":                minimalManifestV12(),
+		"lessons/001.json":             dialogueKanjiGrammarLesson(),
 		"media/audio/dialogue-1-a.mp3": []byte{0xff, 0xfb, 0x90, 0x44},
 	})
 	res := v.ValidateZip(z)

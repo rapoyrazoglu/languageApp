@@ -228,13 +228,13 @@ func TestValidator_PopulatesCoverageOnSuccess(t *testing.T) {
 	v := newValidator(t)
 	z := buildZip(t, "", map[string]any{
 		"manifest.json":    minimalManifestV12(),
-		"lessons/001.json": vocabLessonV12_TranslationsMap(),
+		"lessons/001.json": vocabLessonV12TranslationsMap(),
 	})
 	res := v.ValidateZip(z)
 	if !res.Ok() {
 		t.Fatalf("expected valid pack, got errors: %+v", res.Errors)
 	}
-	// vocabLessonV12_TranslationsMap ships one vocab item with 5 locales →
+	// vocabLessonV12TranslationsMap ships one vocab item with 5 locales →
 	// all five should clear the 100% threshold of a single-atom allowlist.
 	wantLocales := []string{"de", "en", "es", "tr", "zh-Hans"}
 	if !reflect.DeepEqual(res.Coverage.SupportedLocales, wantLocales) {

@@ -59,14 +59,14 @@ EXAMPLE:
 
 	in := bufio.NewReader(os.Stdin)
 	answers := scaffoldAnswers{
-		Slug:               slug,
-		ID:                 *idFlag,
-		Name:               *nameFlag,
-		Description:        *descFlag,
-		LanguageCode:       *langCodeFlag,
-		UILanguage:         *uiLangFlag,
-		Level:              *levelFlag,
-		AuthorName:         *authorFlag,
+		Slug:         slug,
+		ID:           *idFlag,
+		Name:         *nameFlag,
+		Description:  *descFlag,
+		LanguageCode: *langCodeFlag,
+		UILanguage:   *uiLangFlag,
+		Level:        *levelFlag,
+		AuthorName:   *authorFlag,
 	}
 	if err := answers.fillFromPrompts(in, os.Stdout); err != nil {
 		return err
@@ -132,9 +132,9 @@ func (a *scaffoldAnswers) fillFromPrompts(in *bufio.Reader, out *os.File) error 
 		}
 		def := p.fallback()
 		if def != "" {
-			fmt.Fprintf(out, "%s [%s]: ", p.question, def)
+			_, _ = fmt.Fprintf(out, "%s [%s]: ", p.question, def)
 		} else {
-			fmt.Fprintf(out, "%s: ", p.question)
+			_, _ = fmt.Fprintf(out, "%s: ", p.question)
 		}
 		line, err := in.ReadString('\n')
 		if err != nil && line == "" {
@@ -179,10 +179,10 @@ func writeScaffold(dest string, answers scaffoldAnswers) error {
 	}
 
 	files := map[string]string{
-		"templates/manifest.json.tmpl":              filepath.Join(dest, "manifest.json"),
-		"templates/README.md.tmpl":                  filepath.Join(dest, "README.md"),
-		"templates/LICENSE.tmpl":                    filepath.Join(dest, "LICENSE"),
-		"templates/lesson_001.json.tmpl":            filepath.Join(dest, "lessons", "001-getting-started.json"),
+		"templates/manifest.json.tmpl":   filepath.Join(dest, "manifest.json"),
+		"templates/README.md.tmpl":       filepath.Join(dest, "README.md"),
+		"templates/LICENSE.tmpl":         filepath.Join(dest, "LICENSE"),
+		"templates/lesson_001.json.tmpl": filepath.Join(dest, "lessons", "001-getting-started.json"),
 	}
 	for tmplPath, outPath := range files {
 		if err := renderTemplate(tmplPath, outPath, answers); err != nil {
@@ -205,7 +205,7 @@ func renderTemplate(tmplPath, outPath string, data any) error {
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer func() { _ = out.Close() }()
 	return tmpl.Execute(out, data)
 }
 

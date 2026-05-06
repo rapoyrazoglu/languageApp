@@ -105,13 +105,13 @@ func TestSlugPattern_AcceptsValidSlugs(t *testing.T) {
 
 func TestSlugPattern_RejectsInvalidSlugs(t *testing.T) {
 	invalid := []string{
-		"a",                // too short (<2 chars)
-		"-leading",         // leading dash
-		"With-Capitals",    // capital letters
-		"under_score",      // underscore
-		"with space",       // space
-		"./relative",       // path
-		"",                 // empty
+		"a",             // too short (<2 chars)
+		"-leading",      // leading dash
+		"With-Capitals", // capital letters
+		"under_score",   // underscore
+		"with space",    // space
+		"./relative",    // path
+		"",              // empty
 	}
 	for _, s := range invalid {
 		if slugPattern.MatchString(s) {

@@ -171,8 +171,8 @@ func (v *Validator) ValidateZip(data []byte) *ValidationResult {
 		// The struct mirrors only the fields the validator inspects; everything
 		// else flows through the JSON Schema check above.
 		var lesson struct {
-			ID     string         `json:"id"`
-			Blocks []lessonBlock  `json:"blocks"`
+			ID     string        `json:"id"`
+			Blocks []lessonBlock `json:"blocks"`
 		}
 		_ = json.Unmarshal(lb, &lesson)
 		if lesson.ID != lref.ID {
@@ -235,21 +235,21 @@ func (v *Validator) ValidateZip(data []byte) *ValidationResult {
 // Schema lineage:
 //   - 1.0.0+: vocabulary items (Items + their Examples), explanation media
 //   - 1.2.0+: dialogue (Lines), kanji (Items reuses the vocabulary shape),
-//             grammar (top-level Audio + Examples)
+//     grammar (top-level Audio + Examples)
 type lessonBlock struct {
-	Type         string             `json:"type"`
-	ExerciseType string             `json:"exerciseType,omitempty"`
-	Items        []lessonBlockItem  `json:"items,omitempty"`
-	Media        *lessonMedia       `json:"media,omitempty"`
-	Lines        []lessonBlockLine  `json:"lines,omitempty"`    // dialogue
-	Audio        string             `json:"audio,omitempty"`    // grammar (block-level pronunciation)
+	Type         string               `json:"type"`
+	ExerciseType string               `json:"exerciseType,omitempty"`
+	Items        []lessonBlockItem    `json:"items,omitempty"`
+	Media        *lessonMedia         `json:"media,omitempty"`
+	Lines        []lessonBlockLine    `json:"lines,omitempty"`    // dialogue
+	Audio        string               `json:"audio,omitempty"`    // grammar (block-level pronunciation)
 	Examples     []lessonBlockExample `json:"examples,omitempty"` // grammar
 }
 
 type lessonBlockItem struct {
-	Audio    string                `json:"audio,omitempty"`
-	Image    string                `json:"image,omitempty"`
-	Examples []lessonBlockExample  `json:"examples,omitempty"`
+	Audio    string               `json:"audio,omitempty"`
+	Image    string               `json:"image,omitempty"`
+	Examples []lessonBlockExample `json:"examples,omitempty"`
 }
 
 type lessonBlockExample struct {

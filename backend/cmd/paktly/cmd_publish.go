@@ -106,8 +106,8 @@ type IngestResult struct {
 // APIError mirrors the structured error envelope from the registry. Codes
 // are stable so callers (here: pretty-printer) can switch on them.
 type APIError struct {
-	Code    string         `json:"code"`
-	Message string         `json:"message"`
+	Code    string          `json:"code"`
+	Message string          `json:"message"`
 	Fields  []APIErrorField `json:"fields,omitempty"`
 }
 
@@ -153,7 +153,7 @@ func uploadToRegistry(registry, token, originalPath string, zipped []byte) (*Ing
 	if err != nil {
 		return nil, fmt.Errorf("upload: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	respBody, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
