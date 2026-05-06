@@ -13,14 +13,16 @@ type Adapter struct{ DB *DB }
 
 func (a *Adapter) UpsertPackAndVersion(ctx context.Context, in pack.SinkInput) (pack.SinkResult, error) {
 	res, err := a.DB.UpsertPackAndVersion(ctx, UpsertPackInput{
-		Manifest:    in.Manifest,
-		ManifestRaw: in.ManifestRaw,
-		SHA256:      in.SHA256,
-		SizeBytes:   in.SizeBytes,
-		StorageKey:  in.StorageKey,
-		Source:      in.Source,
-		SourceURL:   in.SourceURL,
-		UserID:      in.UserID,
+		Manifest:         in.Manifest,
+		ManifestRaw:      in.ManifestRaw,
+		SHA256:           in.SHA256,
+		SizeBytes:        in.SizeBytes,
+		StorageKey:       in.StorageKey,
+		Source:           in.Source,
+		SourceURL:        in.SourceURL,
+		UserID:           in.UserID,
+		SupportedLocales: in.SupportedLocales,
+		LocaleCoverage:   in.LocaleCoverage,
 	})
 	switch {
 	case errors.Is(err, ErrVersionExists):

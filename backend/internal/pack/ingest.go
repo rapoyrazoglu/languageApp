@@ -24,6 +24,12 @@ type SinkInput struct {
 	Source      string
 	SourceURL   string
 	UserID      string
+
+	// Coverage signals derived from lesson content — see
+	// pack.CoverageStats. Empty/zero on packs that validated under 1.0.0 /
+	// 1.1.0 schema and didn't ship multi-locale `translations` maps.
+	SupportedLocales []string
+	LocaleCoverage   map[string]float64
 }
 
 // SinkResult tells the ingester whether this was the very first version
@@ -68,14 +74,16 @@ func (in *Ingester) Ingest(ctx context.Context, zipBytes []byte, source, sourceU
 	manifestRaw, _ := json.Marshal(m)
 
 	sinkRes, err := in.Sink.UpsertPackAndVersion(ctx, SinkInput{
-		Manifest:    m,
-		ManifestRaw: manifestRaw,
-		SHA256:      res.SHA256,
-		SizeBytes:   res.Size,
-		StorageKey:  key,
-		Source:      source,
-		SourceURL:   sourceURL,
-		UserID:      userID,
+		Manifest:         m,
+		ManifestRaw:      manifestRaw,
+		SHA256:           res.SHA256,
+		SizeBytes:        res.Size,
+		StorageKey:       key,
+		Source:           source,
+		SourceURL:        sourceURL,
+		UserID:           userID,
+		SupportedLocales: res.Coverage.SupportedLocales,
+		LocaleCoverage:   res.Coverage.LocaleCoverage,
 	})
 	if err != nil {
 		return out, err

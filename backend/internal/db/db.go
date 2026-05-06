@@ -64,6 +64,11 @@ type PackVersion struct {
 	ManifestJSON  json.RawMessage `json:"manifest"`
 	MinSDKVersion string          `json:"minSdkVersion,omitempty"`
 	CreatedAt     time.Time       `json:"createdAt"`
+
+	// Locale signals (schema 1.2.0+). Empty/zero on legacy packs.
+	SupportedLocales  []string           `json:"supportedLocales"`
+	LocaleCoverage    map[string]float64 `json:"localeCoverage"`
+	TranslationStatus map[string]string  `json:"translationStatus,omitempty"`
 }
 
 // UpsertPackInput captures everything needed to insert/update both rows in a single tx.
@@ -76,6 +81,12 @@ type UpsertPackInput struct {
 	Source      string // "github" | "upload"
 	SourceURL   string
 	UserID      string // uploader; becomes owner if pack is new
+
+	// Locale signals derived by the validator. Persist on the version row;
+	// a nil/empty SupportedLocales means "no multi-locale data" and stays
+	// `'{}'::text[]` in the column thanks to the migration default.
+	SupportedLocales []string
+	LocaleCoverage   map[string]float64
 }
 
 var (
@@ -167,13 +178,30 @@ func (d *DB) UpsertPackAndVersion(ctx context.Context, in UpsertPackInput) (Upse
 		return UpsertResult{}, fmt.Errorf("upsert pack: %w", err)
 	}
 
+	// Coverage maps default to '{}' in the column when nil; we still pass an
+	// explicit JSON `{}` to keep the queries grep-able.
+	coverageJSON, err := json.Marshal(orEmptyMap(in.LocaleCoverage))
+	if err != nil {
+		return UpsertResult{}, fmt.Errorf("marshal locale_coverage: %w", err)
+	}
+	translationStatusJSON, err := json.Marshal(orEmptyStringMap(m.TranslationStatus))
+	if err != nil {
+		return UpsertResult{}, fmt.Errorf("marshal translation_status: %w", err)
+	}
+	supported := in.SupportedLocales
+	if supported == nil {
+		supported = []string{}
+	}
+
 	_, err = tx.Exec(ctx, `
 		INSERT INTO pack_versions (
 			pack_id, version, schema_version, sha256, size_bytes, storage_key,
-			source, source_url, manifest_json, min_sdk_version, uploader_user_id
-		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+			source, source_url, manifest_json, min_sdk_version, uploader_user_id,
+			supported_locales, locale_coverage, translation_status
+		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
 	`, m.ID, m.Version, m.SchemaVersion, in.SHA256, in.SizeBytes, in.StorageKey,
-		in.Source, in.SourceURL, in.ManifestRaw, m.MinSDKVersion, in.UserID)
+		in.Source, in.SourceURL, in.ManifestRaw, m.MinSDKVersion, in.UserID,
+		supported, coverageJSON, translationStatusJSON)
 	if err != nil {
 		if isUniqueViolation(err) {
 			return UpsertResult{}, ErrVersionExists
@@ -190,6 +218,24 @@ func (d *DB) UpsertPackAndVersion(ctx context.Context, in UpsertPackInput) (Upse
 func isUniqueViolation(err error) bool {
 	var pgErr interface{ SQLState() string }
 	return errors.As(err, &pgErr) && pgErr.SQLState() == "23505"
+}
+
+// Helper shims so JSON marshal of locale-coverage / translation-status maps
+// always produces `{}` rather than `null` — keeps the column predictable
+// for downstream readers.
+
+func orEmptyMap(m map[string]float64) map[string]float64 {
+	if m == nil {
+		return map[string]float64{}
+	}
+	return m
+}
+
+func orEmptyStringMap(m map[string]string) map[string]string {
+	if m == nil {
+		return map[string]string{}
+	}
+	return m
 }
 
 func (d *DB) ListPacks(ctx context.Context, languageCode string, limit int) ([]Pack, error) {
@@ -242,7 +288,8 @@ func (d *DB) GetPack(ctx context.Context, id string) (*Pack, []PackVersion, erro
 
 	rows, err := d.pool.Query(ctx, `
 		SELECT pack_id, version, schema_version, sha256, size_bytes, storage_key,
-		       source, source_url, manifest_json, min_sdk_version, created_at
+		       source, source_url, manifest_json, min_sdk_version, created_at,
+		       supported_locales, locale_coverage, translation_status
 		FROM pack_versions WHERE pack_id = $1
 		ORDER BY created_at DESC
 	`, id)
@@ -253,9 +300,8 @@ func (d *DB) GetPack(ctx context.Context, id string) (*Pack, []PackVersion, erro
 
 	var versions []PackVersion
 	for rows.Next() {
-		var v PackVersion
-		if err := rows.Scan(&v.PackID, &v.Version, &v.SchemaVersion, &v.SHA256, &v.SizeBytes,
-			&v.StorageKey, &v.Source, &v.SourceURL, &v.ManifestJSON, &v.MinSDKVersion, &v.CreatedAt); err != nil {
+		v, err := scanPackVersion(rows)
+		if err != nil {
 			return nil, nil, err
 		}
 		versions = append(versions, v)
@@ -263,14 +309,49 @@ func (d *DB) GetPack(ctx context.Context, id string) (*Pack, []PackVersion, erro
 	return &p, versions, rows.Err()
 }
 
-func (d *DB) GetVersion(ctx context.Context, packID, version string) (*PackVersion, error) {
+// scanPackVersion decodes a pack_versions row that selected the full column
+// list (including the locale signals introduced in migration 00004).
+//
+// Postgres returns JSONB columns as []byte; we json-Unmarshal into typed
+// maps so callers don't have to think about the wire format.
+func scanPackVersion(row interface {
+	Scan(...any) error
+}) (PackVersion, error) {
 	var v PackVersion
-	err := d.pool.QueryRow(ctx, `
+	var coverageRaw, translationStatusRaw []byte
+	err := row.Scan(&v.PackID, &v.Version, &v.SchemaVersion, &v.SHA256, &v.SizeBytes,
+		&v.StorageKey, &v.Source, &v.SourceURL, &v.ManifestJSON, &v.MinSDKVersion, &v.CreatedAt,
+		&v.SupportedLocales, &coverageRaw, &translationStatusRaw)
+	if err != nil {
+		return PackVersion{}, err
+	}
+	if v.SupportedLocales == nil {
+		v.SupportedLocales = []string{}
+	}
+	if len(coverageRaw) > 0 {
+		if err := json.Unmarshal(coverageRaw, &v.LocaleCoverage); err != nil {
+			return PackVersion{}, fmt.Errorf("decode locale_coverage: %w", err)
+		}
+	}
+	if v.LocaleCoverage == nil {
+		v.LocaleCoverage = map[string]float64{}
+	}
+	if len(translationStatusRaw) > 0 {
+		if err := json.Unmarshal(translationStatusRaw, &v.TranslationStatus); err != nil {
+			return PackVersion{}, fmt.Errorf("decode translation_status: %w", err)
+		}
+	}
+	return v, nil
+}
+
+func (d *DB) GetVersion(ctx context.Context, packID, version string) (*PackVersion, error) {
+	row := d.pool.QueryRow(ctx, `
 		SELECT pack_id, version, schema_version, sha256, size_bytes, storage_key,
-		       source, source_url, manifest_json, min_sdk_version, created_at
+		       source, source_url, manifest_json, min_sdk_version, created_at,
+		       supported_locales, locale_coverage, translation_status
 		FROM pack_versions WHERE pack_id = $1 AND version = $2
-	`, packID, version).Scan(&v.PackID, &v.Version, &v.SchemaVersion, &v.SHA256, &v.SizeBytes,
-		&v.StorageKey, &v.Source, &v.SourceURL, &v.ManifestJSON, &v.MinSDKVersion, &v.CreatedAt)
+	`, packID, version)
+	v, err := scanPackVersion(row)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
