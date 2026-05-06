@@ -133,8 +133,8 @@ func TestEndToEnd_PublishViaUpload(t *testing.T) {
 	if uploadResp["packId"] != "com.github.ata.example-nihongo" {
 		t.Fatalf("packId = %v", uploadResp["packId"])
 	}
-	if uploadResp["version"] != "0.1.0" {
-		t.Fatalf("version = %v", uploadResp["version"])
+	if uploadResp["version"] != examplePackVersion {
+		t.Fatalf("version = %v, want %s", uploadResp["version"], examplePackVersion)
 	}
 
 	// 5. List + search.
@@ -150,7 +150,7 @@ func TestEndToEnd_PublishViaUpload(t *testing.T) {
 	}
 
 	// 6. Presigned download URL.
-	dl := getJSON(t, ts.URL+"/v1/packs/com.github.ata.example-nihongo/versions/0.1.0/download", "")
+	dl := getJSON(t, ts.URL+"/v1/packs/com.github.ata.example-nihongo/versions/"+examplePackVersion+"/download", "")
 	url, _ := dl["url"].(string)
 	if !strings.HasPrefix(url, "http") {
 		t.Fatalf("download url: %q", url)
@@ -282,6 +282,32 @@ func zipExamplePack(t *testing.T) []byte {
 	}
 	t.Fatalf("example-nihongo pack not found from %s", wd)
 	return nil
+}
+
+// examplePackVersion lazily reads packs/example-nihongo/manifest.json so
+// the test doesn't have to be hand-edited every time the example pack
+// bumps version.
+var examplePackVersion = readExamplePackVersion()
+
+func readExamplePackVersion() string {
+	wd, _ := os.Getwd()
+	root := wd
+	for i := 0; i < 6; i++ {
+		manifestPath := filepath.Join(root, "packs", "example-nihongo", "manifest.json")
+		if data, err := os.ReadFile(manifestPath); err == nil {
+			var m struct {
+				Version string `json:"version"`
+			}
+			if err := json.Unmarshal(data, &m); err == nil && m.Version != "" {
+				return m.Version
+			}
+		}
+		root = filepath.Dir(root)
+	}
+	// Falling back to a known-recent value keeps the package package-level
+	// var initialisation safe even if the file walk fails — the test will
+	// still report a clear assertion mismatch instead of panicking.
+	return "0.0.0"
 }
 
 func zipDir(t *testing.T, dir string) []byte {
