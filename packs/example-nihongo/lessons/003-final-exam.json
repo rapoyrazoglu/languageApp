@@ -1,0 +1,57 @@
+{
+  "id": "003-final-exam",
+  "title": "Pack 1 — Final Sınavı",
+  "description": "Hiragana ve selamlaşma derslerinin kapsadığı becerileri ölçer.",
+  "examMode": true,
+  "passingScore": 0.8,
+  "timeLimit": 600,
+  "drawsFrom": ["001-hiragana-aiueo", "002-greetings"],
+  "prerequisites": ["002-greetings"],
+  "blocks": [
+    {
+      "type": "exercise",
+      "exerciseType": "multipleChoice",
+      "prompt": "「お」 harfinin okunuşu hangisidir?",
+      "data": {
+        "options": ["a", "i", "u", "o"],
+        "correctIndex": 3
+      },
+      "skills": ["vocab.hiragana"]
+    },
+    {
+      "type": "exercise",
+      "exerciseType": "matching",
+      "prompt": "Selamlaşma ifadelerini eşleştir.",
+      "data": {
+        "pairs": [
+          { "left": { "text": "おはよう" },   "right": { "text": "Günaydın" } },
+          { "left": { "text": "こんばんは" }, "right": { "text": "İyi akşamlar" } },
+          { "left": { "text": "ありがとう" }, "right": { "text": "Teşekkürler" } }
+        ]
+      },
+      "skills": ["vocab.greetings"]
+    },
+    {
+      "type": "exercise",
+      "exerciseType": "typing",
+      "prompt": "\"Merhaba\" romaji ile nasıl yazılır?",
+      "data": {
+        "answer": "konnichiwa",
+        "acceptedAlternatives": ["konnitiwa", "konnichiha"],
+        "caseSensitive": false
+      },
+      "skills": ["vocab.greetings", "writing.romaji"]
+    },
+    {
+      "type": "exercise",
+      "exerciseType": "listening",
+      "prompt": "Duyduğun kelimeyi seç.",
+      "data": {
+        "audio": "media/audio/arigatou.mp3",
+        "options": ["こんにちは", "ありがとう", "おはよう"],
+        "correctIndex": 1
+      },
+      "skills": ["listening.greetings"]
+    }
+  ]
+}

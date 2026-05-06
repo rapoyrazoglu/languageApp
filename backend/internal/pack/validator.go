@@ -32,6 +32,15 @@ type ValidationResult struct {
 	SHA256   string          `json:"sha256"`
 	Size     int64           `json:"size"`
 	Errors   []ValidationErr `json:"errors,omitempty"`
+
+	// Coverage is computed only when the pack validates cleanly. It surfaces
+	// the locale signals the catalog needs: which locales are "supported"
+	// (atom-kind allowlist ≥ 90%) and the actual percent of pool-wide
+	// translatable atoms each locale fills. Schema 1.2.0+ packs benefit;
+	// older packs without `translations` maps will report zero supported
+	// locales — they still validate, the coverage signal just isn't useful
+	// for them.
+	Coverage CoverageStats `json:"coverage"`
 }
 
 type ValidationErr struct {
@@ -131,6 +140,10 @@ func (v *Validator) ValidateZip(data []byte) *ValidationResult {
 	}
 	res.Manifest = &manifest
 
+	// Collected lesson JSON bodies — coverage runs at the end on lessons
+	// that passed schema + media checks.
+	var validatedLessonBodies [][]byte
+
 	// Each lesson file must exist and validate.
 	for _, lref := range manifest.Lessons {
 		lessonPath := path.Join(root, lref.File)
@@ -154,25 +167,12 @@ func (v *Validator) ValidateZip(data []byte) *ValidationResult {
 			continue
 		}
 
-		// Verify lesson id matches manifest reference.
+		// Verify lesson id matches manifest reference + walk media references.
+		// The struct mirrors only the fields the validator inspects; everything
+		// else flows through the JSON Schema check above.
 		var lesson struct {
-			ID     string `json:"id"`
-			Blocks []struct {
-				Type         string `json:"type"`
-				ExerciseType string `json:"exerciseType,omitempty"`
-				Items        []struct {
-					Audio    string `json:"audio,omitempty"`
-					Image    string `json:"image,omitempty"`
-					Examples []struct {
-						Audio string `json:"audio,omitempty"`
-					} `json:"examples,omitempty"`
-				} `json:"items,omitempty"`
-				Media *struct {
-					Audio string `json:"audio,omitempty"`
-					Image string `json:"image,omitempty"`
-					Video string `json:"video,omitempty"`
-				} `json:"media,omitempty"`
-			} `json:"blocks"`
+			ID     string         `json:"id"`
+			Blocks []lessonBlock  `json:"blocks"`
 		}
 		_ = json.Unmarshal(lb, &lesson)
 		if lesson.ID != lref.ID {
@@ -182,8 +182,16 @@ func (v *Validator) ValidateZip(data []byte) *ValidationResult {
 			})
 		}
 
-		// Check media references.
+		// Hold on to the raw body so coverage extraction can walk it once
+		// all lessons have passed schema + media checks. We avoid running
+		// coverage on packs with errors — the percentages would be misleading.
+		validatedLessonBodies = append(validatedLessonBodies, lb)
+
+		// Check media references across every block type.
 		for _, b := range lesson.Blocks {
+			// Vocabulary items (1.0.0+) and kanji items (1.2.0+) both expose
+			// audio/image plus examples; their JSON shapes overlap enough to
+			// share the walk.
 			for _, it := range b.Items {
 				checkMedia(res, files, root, lref.File, it.Audio)
 				checkMedia(res, files, root, lref.File, it.Image)
@@ -191,15 +199,71 @@ func (v *Validator) ValidateZip(data []byte) *ValidationResult {
 					checkMedia(res, files, root, lref.File, ex.Audio)
 				}
 			}
+			// Explanation blocks may attach a single MediaRef.
 			if b.Media != nil {
 				checkMedia(res, files, root, lref.File, b.Media.Audio)
 				checkMedia(res, files, root, lref.File, b.Media.Image)
 				checkMedia(res, files, root, lref.File, b.Media.Video)
 			}
+			// Dialogue (1.2.0+) — each line may carry its own audio file.
+			for _, ln := range b.Lines {
+				checkMedia(res, files, root, lref.File, ln.Audio)
+			}
+			// Grammar block (1.2.0+) — pattern audio + per-example audio.
+			checkMedia(res, files, root, lref.File, b.Audio)
+			for _, ex := range b.Examples {
+				checkMedia(res, files, root, lref.File, ex.Audio)
+			}
 		}
 	}
 
+	// Coverage is only meaningful on packs that otherwise validated cleanly.
+	// A pack with broken media or unparseable lessons would produce
+	// misleading percentages.
+	if res.Ok() {
+		res.Coverage = computeCoverage(validatedLessonBodies)
+	}
+
 	return res
+}
+
+// lessonBlock captures the union of all block types' media-bearing fields.
+// JSON Schema validation has already enforced the per-type contract; here we
+// only need a shape that catches every audio/image/video reference so we can
+// verify each one points at a real file in the zip.
+//
+// Schema lineage:
+//   - 1.0.0+: vocabulary items (Items + their Examples), explanation media
+//   - 1.2.0+: dialogue (Lines), kanji (Items reuses the vocabulary shape),
+//             grammar (top-level Audio + Examples)
+type lessonBlock struct {
+	Type         string             `json:"type"`
+	ExerciseType string             `json:"exerciseType,omitempty"`
+	Items        []lessonBlockItem  `json:"items,omitempty"`
+	Media        *lessonMedia       `json:"media,omitempty"`
+	Lines        []lessonBlockLine  `json:"lines,omitempty"`    // dialogue
+	Audio        string             `json:"audio,omitempty"`    // grammar (block-level pronunciation)
+	Examples     []lessonBlockExample `json:"examples,omitempty"` // grammar
+}
+
+type lessonBlockItem struct {
+	Audio    string                `json:"audio,omitempty"`
+	Image    string                `json:"image,omitempty"`
+	Examples []lessonBlockExample  `json:"examples,omitempty"`
+}
+
+type lessonBlockExample struct {
+	Audio string `json:"audio,omitempty"`
+}
+
+type lessonBlockLine struct {
+	Audio string `json:"audio,omitempty"`
+}
+
+type lessonMedia struct {
+	Audio string `json:"audio,omitempty"`
+	Image string `json:"image,omitempty"`
+	Video string `json:"video,omitempty"`
 }
 
 func checkMedia(res *ValidationResult, files map[string]*zip.File, root, lessonFile, ref string) {

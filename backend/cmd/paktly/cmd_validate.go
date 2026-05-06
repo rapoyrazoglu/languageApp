@@ -133,6 +133,12 @@ func printTextResult(res *pack.ValidationResult, path string) error {
 			res.Manifest.ID, res.Manifest.Version, res.Manifest.SchemaVersion)
 		fmt.Printf("     size=%s  sha256=%s\n", humanBytes(int(res.Size)), res.SHA256[:12]+"…")
 		fmt.Printf("     lessons=%d  ai=%s\n", len(res.Manifest.Lessons), ai)
+		// Coverage: only show if the pack ships at least some multi-locale
+		// data, otherwise the "(none)" lines are noise on legacy packs.
+		if len(res.Coverage.SupportedLocales) > 0 || len(res.Coverage.LocaleCoverage) > 0 {
+			fmt.Printf("     supportedLocales=%s\n", formatLocales(res.Coverage.SupportedLocales))
+			fmt.Printf("     localeCoverage=%s\n", formatCoverage(res.Coverage.LocaleCoverage))
+		}
 		return nil
 	}
 	fmt.Fprintln(os.Stderr, "FAIL", path)
@@ -183,6 +189,43 @@ func printJSONResult(res *pack.ValidationResult) error {
 		return &cliError{msg: "", code: 2}
 	}
 	return nil
+}
+
+func formatLocales(ls []string) string {
+	if len(ls) == 0 {
+		return "(none — pack lacks multi-locale translations or core <90% threshold)"
+	}
+	return strings.Join(ls, ",")
+}
+
+func formatCoverage(m map[string]float64) string {
+	if len(m) == 0 {
+		return "(empty)"
+	}
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	// stable display order: descending coverage, alphabetical tie-break
+	sortByCoverageDesc(keys, m)
+	parts := make([]string, 0, len(keys))
+	for _, k := range keys {
+		parts = append(parts, fmt.Sprintf("%s=%.1f%%", k, m[k]*100))
+	}
+	return strings.Join(parts, " ")
+}
+
+func sortByCoverageDesc(keys []string, m map[string]float64) {
+	for i := 1; i < len(keys); i++ {
+		for j := i; j > 0; j-- {
+			a, b := keys[j-1], keys[j]
+			if m[a] < m[b] || (m[a] == m[b] && a > b) {
+				keys[j-1], keys[j] = b, a
+				continue
+			}
+			break
+		}
+	}
 }
 
 func formatAI(c *pack.AICapabilities) string {

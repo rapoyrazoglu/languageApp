@@ -6,11 +6,13 @@ artırılarak yapılır.
 
 | Sürüm | Durum | Eklenenler |
 |---|---|---|
-| **1.1.0** | Aktif (önerilen) | `aiCapabilities`, vocabulary `examples[]` + `ipa`, `previousPack`/`nextPack` (level path) |
-| 1.0.0 | Hâlâ desteklenir (backwards-compatible) | İlk kararlı sürüm |
+| **1.2.0** | Aktif (önerilen) | `dialogue` / `kanji` / `grammar` block tipleri; multi-locale `translations` / `meanings` / `formations` / `usages` / `watchOuts` / `mnemonics` / `contexts` map'leri (legacy tek-string alanlarla yan yana); lesson seviyesinde `examMode` / `passingScore` / `timeLimit` / `drawsFrom` (mock sınav); exercise'a opsiyonel `skills[]` ve `distractorTags[]` (ileride SRS / diagnostic için rezerve) |
+| 1.1.0 | Hâlâ desteklenir | `aiCapabilities`, vocabulary `examples[]` + `ipa`, `previousPack`/`nextPack` (level path) |
+| 1.0.0 | Hâlâ desteklenir | İlk kararlı sürüm |
 
-> v1.0.0 paketler değişiklik gerektirmez — schema'ya yeni alanlar **opsiyonel**
-> olarak eklendi. Eski paketler hiçbir şey yapmadan çalışmaya devam eder.
+> v1.0.0 ve v1.1.0 paketler değişiklik gerektirmez — schema'ya yeni alanlar
+> **opsiyonel** olarak eklendi. Eski paketler hiçbir şey yapmadan çalışmaya
+> devam eder.
 
 ## 1. Pack nedir?
 
@@ -56,7 +58,7 @@ Zorunlu alanlar: `schemaVersion`, `id`, `name`, `version`, `language`, `author`,
 - MINOR: yeni ders eklendi
 - PATCH: yazım hatası düzeltildi, ses yeniden kaydedildi
 
-**`schemaVersion`:** Bu manifestin uyduğu pack format sürümü. Geçerli değerler: `"1.0.0"` veya `"1.1.0"`. Yeni pack'ler `"1.1.0"` kullanmalı.
+**`schemaVersion`:** Bu manifestin uyduğu pack format sürümü. Geçerli değerler: `"1.0.0"`, `"1.1.0"`, veya `"1.2.0"`. Yeni pack'ler `"1.2.0"` kullanmalı.
 
 ### 3.1 v1.1 opsiyonel alanlar
 
@@ -96,7 +98,39 @@ bitirdiğinde SDK `nextPack`'i önerir.
 
 Şema: [`schema/lesson.schema.json`](../schema/lesson.schema.json).
 
-Bir ders, sıralı **block**'lardan oluşur. Üç tip block var:
+Bir ders, sıralı **block**'lardan oluşur. Altı block tipi vardır:
+
+- `explanation` — düz metin açıklama (1.0.0+)
+- `vocabulary` — kelime listesi (1.0.0+)
+- `exercise` — etkileşimli alıştırma (1.0.0+; 30 tip 1.2.0'da)
+- `dialogue` — çok-konuşmacılı diyalog (**1.2.0+**)
+- `kanji` — kanji karakter kartları (**1.2.0+**)
+- `grammar` — yapılandırılmış gramer pattern'i (**1.2.0+**)
+
+### 4.0 Lesson seviyesi opsiyonel alanlar (1.2.0+)
+
+Mock sınav için `examMode: true` set edilirse SDK dersi assessment olarak
+render eder: hint butonları kapanır, tek deneme hakkı verilir, pack
+ilerlemesi yalnızca `passingScore` aşılırsa %100'e ulaşır.
+
+```json
+{
+  "id": "n5-foundations-final",
+  "title": "Pack 1 final sınavı",
+  "examMode": true,
+  "passingScore": 0.8,
+  "timeLimit": 600,
+  "drawsFrom": ["001-foundations", "002-people"],
+  "blocks": [ /* sadece exercise — explanation/vocab YOK */ ]
+}
+```
+
+| Alan | Anlam |
+|---|---|
+| `examMode` | `true` ise lesson bir mock sınavdır. Default `false`. |
+| `passingScore` | Geçer not (0..1). `examMode: true` ise default `0.8`. |
+| `timeLimit` | Saniye cinsinden süre. SDK geri sayım gösterir. Opsiyonel. |
+| `drawsFrom` | Bu sınavın kapsadığı lesson id'leri. Sonuç ekranında chapter-bazlı dökümün etiketlemesi için kullanılır. |
 
 ### 4.1 `explanation`
 Düz metin açıklama (markdown ileride desteklenecek).
@@ -106,7 +140,7 @@ Düz metin açıklama (markdown ileride desteklenecek).
 ```
 
 ### 4.2 `vocabulary`
-Hedef dil → ana dil çevirisi listesi.
+Hedef dil → ana dil çevirisi listesi. 1.2.0'dan itibaren `translation` tek-string'in yerine `translations` map'i kullanılabilir (legacy ile yan yana).
 
 ```json
 {
@@ -114,14 +148,23 @@ Hedef dil → ana dil çevirisi listesi.
   "items": [
     {
       "target": "こんにちは",
-      "translation": "merhaba",
+      "translations": {
+        "tr": "merhaba",
+        "en": "hello",
+        "de": "hallo",
+        "zh-Hans": "你好",
+        "es": "hola"
+      },
       "transliteration": "konnichiwa",
       "audio": "media/audio/konnichiwa.mp3",
       "ipa": "/koɲɲitɕiwa/",
       "examples": [
         {
           "text": "こんにちは、田中さん",
-          "translation": "merhaba Tanaka-san",
+          "translations": {
+            "tr": "merhaba Tanaka-san",
+            "en": "hello Tanaka-san"
+          },
           "audio": "media/audio/example-1.mp3"
         }
       ]
@@ -134,13 +177,18 @@ Hedef dil → ana dil çevirisi listesi.
 | Alan | Sürüm | Zorunlu | Açıklama |
 |---|---|---|---|
 | `target` | 1.0.0 | ✓ | Öğrenilecek dilde kelime/ifade |
-| `translation` | 1.0.0 | ✓ | UI dilinde çevirisi |
+| `translation` | 1.0.0 | ⚠️ | Tek-locale çevirisi. **`translations` veya `translation`'dan en az biri zorunlu.** |
+| `translations` | **1.2.0** | ⚠️ | BCP-47 locale → string map. Çoklu dil desteği için tercih edilir. |
 | `transliteration` | 1.0.0 | — | romaji, pinyin, transliteration |
 | `audio` | 1.0.0 | — | Ses dosyası yolu (1.1.0+'da opsiyonel; SDK iOS Siri/Android TTS ile fallback yapar) |
 | `image` | 1.0.0 | — | Görsel ipucu |
 | `notes` | 1.0.0 | — | Yazarın özel notu |
 | `ipa` | **1.1.0** | — | Phonetic transcription (IPA) |
-| `examples[]` | **1.1.0** | — | Örnek cümle listesi (text + translation + opsiyonel audio + notes) |
+| `examples[]` | **1.1.0** | — | Örnek cümle listesi (text + translation/translations + opsiyonel audio + notes) |
+
+**Locale resolution:** SDK çevirileri seçerken
+`userLocale → manifest.uiLanguage → translations sıralı fallback → legacy translation` sırasını izler.
+`zh-Hans-CN` gibi çok parçalı tag'ler `zh-Hans → zh` zinciriyle düşer.
 
 ### 4.3 `exercise`
 Etkileşimli alıştırma. `exerciseType` alanı türü belirler:
@@ -155,6 +203,115 @@ Etkileşimli alıştırma. `exerciseType` alanı türü belirler:
 | `fillInBlank` | Boşluk doldurma |
 
 Her türün `data` payload'ı farklıdır — SDK her tip için ayrı validation yapar.
+
+**1.2.0 ekleri (opsiyonel):**
+
+```json
+{
+  "type": "exercise",
+  "exerciseType": "multipleChoice",
+  "data": { "options": ["a","b","c","d"], "correctIndex": 1 },
+  "skills": ["vocab.n5", "grammar.particle.wa"],
+  "distractorTags": ["confusion-doctor", null, "confusion-c", "confusion-d"]
+}
+```
+
+`skills[]` ve `distractorTags[]` Phase 6+ SRS / diagnostic için rezerve edilmiş
+opsiyonel alanlardır. SDK şu an ignore eder; pack'leri ileride yeniden yazma
+ihtiyacını ortadan kaldırmak için bedava emit edebilirsin.
+
+### 4.4 `dialogue` (1.2.0+)
+
+Çok-konuşmacılı diyalog. Genki/textbook tarzı pack'ler için temel block.
+
+```json
+{
+  "type": "dialogue",
+  "contexts": {
+    "tr": "Kampüste tanışan iki öğrenci.",
+    "en": "Two students meeting on campus."
+  },
+  "lines": [
+    {
+      "speaker": "A",
+      "target": "はじめまして。私は田中です。",
+      "translations": {
+        "tr": "Tanıştığımıza memnun oldum. Ben Tanaka.",
+        "en": "Nice to meet you. I'm Tanaka."
+      },
+      "audio": "media/audio/dialogue-1-a.mp3"
+    },
+    {
+      "speaker": "B",
+      "target": "山田です。よろしく。",
+      "translation": "I'm Yamada. Pleased to meet you."
+    }
+  ]
+}
+```
+
+`speaker` free-form (örn. `"A"`, `"店員"`, `"Tanaka"`). SDK aynı konuşmacının
+ardışık satırlarını gruplar. `target` zorunlu, `translation` veya `translations`
+en az biri olmalı.
+
+### 4.5 `kanji` (1.2.0+)
+
+Kanji karakter kartları. on/kun okumalar dizi olarak ayrı tutulur.
+
+```json
+{
+  "type": "kanji",
+  "items": [
+    {
+      "character": "日",
+      "meanings": { "tr": "gün, güneş", "en": "day, sun" },
+      "onyomi": ["ニチ", "ジツ"],
+      "kunyomi": ["ひ", "-び", "-か"],
+      "strokes": 4,
+      "jlptLevel": "N5",
+      "mnemonics": { "tr": "Bir pencereden gelen güneş." },
+      "examples": [
+        {
+          "word": "今日",
+          "reading": "きょう",
+          "translations": { "tr": "bugün", "en": "today" }
+        }
+      ]
+    }
+  ]
+}
+```
+
+`character` zorunlu (genelde tek kanji; 8 karaktere kadar izinli). `meaning`
+veya `meanings` en az biri olmalı. `jlptLevel` enum: `N5`/`N4`/`N3`/`N2`/`N1`.
+
+### 4.6 `grammar` (1.2.0+)
+
+Yapılandırılmış gramer pattern'i — Genki/Bunpo tarzı `[Oluşum]/[Kullanım]/
+[Dikkat]/[Benzer]` yapısının resmi karşılığı. Düz metin explanation'a sıkıştırmak yerine SDK'nın ayrı render edebilmesini sağlar (ileride "sadece örnekleri göster", "benzer yapılara atla" gibi micro-interaction'lar mümkün olur).
+
+```json
+{
+  "type": "grammar",
+  "pattern": "～は～です",
+  "level": "N5",
+  "meanings":   { "tr": "~ dır/dir (kibar)", "en": "~ is ~ (polite)" },
+  "formations": { "tr": "İsim + は + İsim + です" },
+  "usages":     { "tr": "Japonca'nın en temel cümle yapısı." },
+  "watchOuts":  { "tr": "は burada 'wa' okunur, 'ha' değil." },
+  "related":    ["～は～じゃないです", "～は～でした"],
+  "examples": [
+    {
+      "text": "私は学生です。",
+      "translations": { "tr": "Ben öğrenciyim.", "en": "I am a student." }
+    }
+  ]
+}
+```
+
+`pattern` zorunlu. `meaning` veya `meanings` en az biri zorunlu. Diğer her
+alan opsiyonel; eksikleri SDK render'da atlar. `level` JLPT (`N5`-`N1`) veya
+CEFR (`A1`-`C2`) değer alabilir.
 
 ## 5. Dağıtım
 

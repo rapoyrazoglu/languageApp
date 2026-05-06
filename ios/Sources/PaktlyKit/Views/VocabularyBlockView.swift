@@ -84,7 +84,7 @@ public struct VocabularyCardView: View {
 
             Divider()
 
-            Text(item.translation)
+            Text(item.resolvedTranslation() ?? "")
                 .font(.title3)
                 .frame(maxWidth: .infinity, alignment: .center)
 
@@ -143,7 +143,7 @@ private struct ExampleList: View {
             ForEach(Array(examples.enumerated()), id: \.offset) { _, ex in
                 VStack(alignment: .leading, spacing: 4) {
                     Text(ex.text).font(.body)
-                    Text(ex.translation)
+                    Text(ex.resolvedTranslation() ?? "")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                     if let path = ex.audio, let url = pack.mediaURL(forRelativePath: path) {

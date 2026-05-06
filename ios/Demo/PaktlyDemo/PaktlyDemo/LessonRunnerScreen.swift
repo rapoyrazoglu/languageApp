@@ -97,6 +97,16 @@ struct LessonRunnerScreen: View {
                         onAudioRequest: { services.audioPlayer.play($0) },
                         onFinish: { _ in state.advance() }
                     )
+                // Schema 1.2.0+ blocks. Demo's lesson runner doesn't have
+                // dedicated views for these yet — they're scheduled for the
+                // content design pass. Show a compact placeholder so 1.2.0
+                // packs don't crash and the user can still advance.
+                case .dialogue(let b):
+                    UnrenderedBlockNotice(label: "dialogue", detail: "\(b.lines.count) line\(b.lines.count == 1 ? "" : "s")")
+                case .kanji(let b):
+                    UnrenderedBlockNotice(label: "kanji", detail: "\(b.items.count) item\(b.items.count == 1 ? "" : "s")")
+                case .grammar(let b):
+                    UnrenderedBlockNotice(label: "grammar", detail: b.pattern)
                 }
             }
             // Pad the bottom so block content never sits behind the floating
@@ -155,3 +165,30 @@ struct LessonRunnerScreen: View {
     }
 }
 
+
+/// Visible-but-minimal stand-in for schema 1.2.0 blocks the demo's lesson
+/// runner doesn't render yet (`dialogue`, `kanji`, `grammar`). Keeps the
+/// runner schema-compatible with 1.2.0 packs while a follow-up content
+/// design pass produces dedicated views.
+private struct UnrenderedBlockNotice: View {
+    let label: String
+    let detail: String
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "rectangle.stack.badge.plus")
+                .font(.title)
+                .foregroundStyle(DS.textTertiary)
+            Text(label.uppercased())
+                .font(.dsCaption)
+                .tracking(0.08)
+                .foregroundStyle(DS.textSecondary)
+            Text(detail)
+                .font(.dsHeadline)
+                .foregroundStyle(DS.textPrimary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, minHeight: 200)
+        .padding()
+    }
+}

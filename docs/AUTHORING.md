@@ -4,6 +4,10 @@
 > teachers, schools, language enthusiasts, content studios. No coding required;
 > a text editor and a folder is enough.
 
+> **New here?** Start with **[TUTORIAL.md](TUTORIAL.md)** — a 30-minute
+> hands-on walkthrough that takes you from zero to a published pack.
+> This document is the reference manual; the tutorial is the on-ramp.
+
 This document is the single source of truth for creators. It covers:
 
 1. [What a pack is](#1-what-a-pack-is)
@@ -22,6 +26,9 @@ This document is the single source of truth for creators. It covers:
 14. [Featured / "Paktly Originals" curation rules](#14-featured-curation)
 15. [Worked example — a complete pack](#15-worked-example)
 16. [FAQ](#16-faq)
+17. [New block types (1.2.0): dialogue / kanji / grammar](#17-new-block-types-120)
+18. [Mock exams (1.2.0)](#18-mock-exams-120)
+19. [Locale coverage and translation provenance (1.2.0)](#19-locale-coverage-and-translation-provenance-120)
 
 If you spot anything unclear, file an issue at
 [github.com/rapoyrazoglu/languageApp/issues](https://github.com/rapoyrazoglu/languageApp/issues).
@@ -71,13 +78,36 @@ my-pack/
 
 Pack format is currently **`1.2.0`** (the active spec). Older `1.1.0` and
 `1.0.0` packs continue to validate and run; new packs should set
-`schemaVersion: "1.2.0"` so they can use the full exercise catalog.
+`schemaVersion: "1.2.0"` so they can use the full exercise catalog and the
+new content block types.
 
 ```json
 {
   "schemaVersion": "1.2.0"
 }
 ```
+
+### What's new in 1.2.0
+
+Compared to 1.1.0, all additions are backwards-compatible:
+
+- **Three new block types** — `dialogue` (multi-speaker conversations),
+  `kanji` (character cards with on/kun readings), `grammar` (structured
+  grammar patterns with formation/usage/watch-outs). See [§17 New block types](#17-new-block-types-120).
+- **Multi-locale text** — every locale-sensitive field (vocab `translation`,
+  example `translation`, kanji `meaning`, grammar `meaning`/`formation`/
+  `usage`/`watchOut`/dialogue `context`/mnemonic) now has a paired plural
+  form (`translations`, `meanings`, `formations`, ...) that takes a BCP-47
+  locale → string map. The legacy single-locale field stays as a fallback;
+  emit at least one of them.
+- **Mock exam lessons** — top-level `examMode: true` + `passingScore` +
+  `timeLimit` + `drawsFrom[]` mark a lesson as an assessment. SDK disables
+  hints, enforces a single attempt, and gates pack progress on the score.
+  See [§18 Mock exams](#18-mock-exams-120).
+- **Diagnostic exercise tags** — optional `skills[]` and `distractorTags[]`
+  on exercise blocks. Reserved for Phase 6+ SRS / analytics; SDK currently
+  ignores them, but emitting them now means your pack won't need rewriting
+  later.
 
 Schema files (JSON Schema 2020-12) live in
 [`schema/manifest.schema.json`](../schema/manifest.schema.json) and
@@ -265,13 +295,48 @@ Per-item fields:
 | Field | Required | Since | Notes |
 |---|---|---|---|
 | `target` | ✓ | 1.0.0 | Word or phrase in the language being learned. |
-| `translation` | ✓ | 1.0.0 | The translation, in the pack's `uiLanguage`. |
+| `translation` | ⚠️ | 1.0.0 | Single-locale translation. **At least one of `translation` or `translations` must be present.** |
+| `translations` | ⚠️ | **1.2.0** | BCP-47 locale → string map, e.g. `{ "tr": "merhaba", "en": "hello", "zh-Hans": "你好" }`. Use this in place of (or alongside) `translation` for multi-locale packs. |
 | `transliteration` | — | 1.0.0 | romaji, pinyin, or any romanisation that helps the learner. |
 | `audio` | — | 1.0.0 | Path to audio under `media/audio/`. **Optional** — see [§8 audio strategy](#8-audio-strategy). |
 | `image` | — | 1.0.0 | Path to an image under `media/images/`. |
 | `notes` | — | 1.0.0 | Free-form note shown on the card (cultural context, gotchas). |
 | `ipa` | — | 1.1.0 | Phonetic transcription. Especially useful for tonal / prosody-heavy languages. |
-| `examples[]` | — | 1.1.0 | Example sentences featuring the word. Each has `text` + `translation` + optional `audio` + `notes`. |
+| `examples[]` | — | 1.1.0 | Example sentences featuring the word. Each has `text` + `translation` (or `translations`) + optional `audio` + `notes`. |
+
+### Multi-locale translations (1.2.0+)
+
+When you target multiple UI languages, prefer `translations` over the legacy
+single-string `translation`:
+
+```json
+{
+  "target": "こんにちは",
+  "translations": {
+    "tr": "merhaba",
+    "en": "hello",
+    "de": "hallo",
+    "zh-Hans": "你好",
+    "es": "hola"
+  }
+}
+```
+
+The SDK resolves the displayed string with this fallback chain:
+
+1. The user's preferred locale (e.g. `zh-Hans-CN` → `zh-Hans` → `zh`)
+2. The pack's `manifest.uiLanguage` (BCP-47 chain again)
+3. The legacy `translation` field, if present
+
+Locale keys must match `^[a-z]{2,3}(-[A-Za-z][A-Za-z0-9]*)?$` — lowercase
+language code, optional region or script suffix. `zh-Hans` is valid; `TR` is
+not. Same multi-locale pattern applies inside `examples[].translations`.
+
+A pack's "supported locales" are derived at registry ingest time by walking
+every translatable string and recording the locale keys present. A locale
+counts as supported when ≥90% of translatable items have a value for it; the
+Discover "For X speakers" surfaces use this list. You don't declare it in
+the manifest.
 
 The SDK renders each item as a card in a vertical stack. Ship at least an
 `audio` recording for top-tier packs (see [Featured curation rules](#14-featured-curation)).
@@ -791,15 +856,49 @@ The registry validates and stores it. Same id @ same version → 409 Conflict
 
 ### Local validation before upload
 
-Validate locally first to catch errors before they hit the registry:
+Validate locally first to catch errors before they hit the registry. The
+`paktly` CLI is the recommended way:
 
 ```bash
-# From the repo root
-cd backend
-go run ./cmd/validate-pack /path/to/my-pack-1.0.0.zip
+paktly pack validate /path/to/my-pack
+# Folder OR pre-built .zip both work
 ```
 
-This runs the same pipeline the registry does.
+Or, if you don't have the CLI built yet:
+
+```bash
+cd backend
+go run ./cmd/paktly pack validate /path/to/my-pack
+```
+
+For machine-readable output (CI / editor integration):
+
+```bash
+paktly pack validate --json /path/to/my-pack
+```
+
+The `--json` flag emits the same result as the registry's API does, with
+each error pointing at a specific JSON pointer inside the offending file.
+
+### The full `paktly` CLI
+
+The CLI is the friendliest way to author packs. Build it once:
+
+```bash
+cd backend
+go build -o ~/bin/paktly ./cmd/paktly
+```
+
+Then anywhere on your machine:
+
+```bash
+paktly pack new <slug>          # scaffold a new pack
+paktly pack validate <path>     # validate folder or zip
+paktly pack publish <path>      # validate + upload to registry
+paktly login                    # save token to ~/.config/paktly/config.json
+```
+
+Full walkthrough: **[TUTORIAL.md](TUTORIAL.md)**.
 
 ---
 
@@ -1068,3 +1167,272 @@ app supports a "load local pack" mode), or run the CLI validator:
 
 **Q: Where do I report bugs in the spec or this guide?**
 A: <https://github.com/rapoyrazoglu/languageApp/issues>.
+
+---
+
+## 17. New block types (1.2.0)
+
+Three block types were added in 1.2.0. They sit alongside `explanation` /
+`vocabulary` / `exercise` and follow the same `{ "type": "...", ... }` shape.
+You can mix them freely inside a lesson's `blocks` array.
+
+### 17.1 `dialogue`
+
+A multi-speaker conversation. Use this when a lesson teaches a real-world
+exchange (greeting at a register, asking directions, a phone call). Each
+line carries its own audio path so the SDK can play one line at a time and,
+in a future phase, support role-play mode.
+
+```json
+{
+  "type": "dialogue",
+  "contexts": {
+    "tr": "Üniversite kampüsünde tanışan iki öğrenci.",
+    "en": "Two students meeting on campus."
+  },
+  "lines": [
+    {
+      "speaker": "A",
+      "target": "はじめまして。私は田中です。",
+      "translations": {
+        "tr": "Tanıştığımıza memnun oldum. Ben Tanaka.",
+        "en": "Nice to meet you. I'm Tanaka."
+      },
+      "audio": "media/audio/dialogue-1-a.mp3"
+    },
+    {
+      "speaker": "B",
+      "target": "山田です。よろしく。",
+      "translation": "I'm Yamada. Pleased to meet you."
+    }
+  ]
+}
+```
+
+| Field | Required | Notes |
+|---|---|---|
+| `lines[]` | ✓ | At least 2 lines. |
+| `lines[].target` | ✓ | The line in the target language. |
+| `lines[].translation` / `translations` | ⚠️ | At least one of them per line. |
+| `lines[].speaker` | — | Free-form label, e.g. `"A"`, `"店員"`, `"Tanaka"`. |
+| `lines[].audio` | — | Per-line audio file. |
+| `context` / `contexts` | — | Optional setting / scene description shown above the dialogue. |
+
+### 17.2 `kanji`
+
+Kanji character cards. Don't squeeze kanji into vocabulary blocks — kanji
+aren't words, they're characters with multiple readings, stroke counts,
+radicals, and mnemonic stories. The dedicated block keeps that structure
+intact.
+
+```json
+{
+  "type": "kanji",
+  "items": [
+    {
+      "character": "日",
+      "meanings": { "tr": "gün, güneş", "en": "day, sun" },
+      "onyomi": ["ニチ", "ジツ"],
+      "kunyomi": ["ひ", "-び", "-か"],
+      "strokes": 4,
+      "jlptLevel": "N5",
+      "mnemonics": { "tr": "Bir pencereden gelen güneş." },
+      "examples": [
+        {
+          "word": "今日",
+          "reading": "きょう",
+          "translations": { "tr": "bugün", "en": "today" }
+        }
+      ]
+    }
+  ]
+}
+```
+
+| Field | Required | Notes |
+|---|---|---|
+| `character` | ✓ | The kanji glyph (1–8 chars; usually 1). |
+| `meaning` / `meanings` | ⚠️ | At least one of them. |
+| `onyomi[]` | — | Sino-Japanese readings (typically katakana). |
+| `kunyomi[]` | — | Native readings (typically hiragana, with `-` markers for okurigana). |
+| `strokes` | — | Integer 1–100. |
+| `jlptLevel` | — | `N5` / `N4` / `N3` / `N2` / `N1`. |
+| `radicals[]` | — | Component radicals. |
+| `mnemonic` / `mnemonics` | — | Memory aid story. |
+| `examples[]` | — | Compound words demonstrating the kanji. Each: `word` + `reading?` + `translation`/`translations`. |
+
+### 17.3 `grammar`
+
+Structured grammar pattern. Most grammar-heavy languages (Japanese, Korean,
+German, ...) follow a near-standard teaching template:
+**[Formation] / [Usage] / [Watch out] / [Related patterns]**. The grammar
+block makes that template a first-class structure so the SDK can render each
+slot separately (a future phase will let learners filter "show only
+examples", jump to related patterns, etc.).
+
+```json
+{
+  "type": "grammar",
+  "pattern": "～は～です",
+  "level": "N5",
+  "meanings":   { "tr": "~ dır/dir (kibar)", "en": "~ is ~ (polite)" },
+  "formations": { "tr": "İsim + は + İsim + です" },
+  "usages":     { "tr": "Japonca'nın en temel cümle yapısı." },
+  "watchOuts":  { "tr": "は burada 'wa' okunur, 'ha' değil." },
+  "related":    ["～は～じゃないです", "～は～でした"],
+  "examples": [
+    {
+      "text": "私は学生です。",
+      "translations": { "tr": "Ben öğrenciyim.", "en": "I am a student." }
+    }
+  ]
+}
+```
+
+| Field | Required | Notes |
+|---|---|---|
+| `pattern` | ✓ | The pattern itself, e.g. `"～は～です"`. |
+| `meaning` / `meanings` | ⚠️ | One-line gloss; at least one of them. |
+| `level` | — | `N5`–`N1` or `A1`–`C2`. |
+| `formation` / `formations` | — | How the pattern is built. |
+| `usage` / `usages` | — | When to use it (paragraph). |
+| `watchOut` / `watchOuts` | — | Common pitfalls / nuance. |
+| `examples[]` | — | Sentences using the pattern. Same shape as vocabulary examples. |
+| `related[]` | — | Free-form references to related grammar pattern names. |
+| `audio` | — | Pronunciation of the archetypal form. |
+
+---
+
+## 18. Mock exams (1.2.0)
+
+Set `examMode: true` at the lesson level to mark the lesson as an
+assessment. Use this for chapter-end exams, mid-term tests, or pack-final
+quizzes. The SDK changes its behaviour: hints are disabled, the learner
+gets one attempt, the score gates pack progress, and the result screen
+shows a per-skill breakdown.
+
+```json
+{
+  "id": "n5-foundations-final",
+  "title": "Pack 1 — Final Exam",
+  "examMode": true,
+  "passingScore": 0.8,
+  "timeLimit": 600,
+  "drawsFrom": ["001-greetings", "002-pronouns", "003-numbers"],
+  "blocks": [
+    { "type": "exercise", "exerciseType": "multipleChoice", "data": { /* ... */ } },
+    { "type": "exercise", "exerciseType": "typing",         "data": { /* ... */ } },
+    { "type": "exercise", "exerciseType": "matching",       "data": { /* ... */ } }
+    // ...20 items typical, exercise-only
+  ]
+}
+```
+
+| Field | Required | Notes |
+|---|---|---|
+| `examMode` | — | `true` to enable exam mode. Default `false`. |
+| `passingScore` | — | Score (0..1) needed to clear the exam. Defaults to `0.8` if `examMode: true` and this is omitted. |
+| `timeLimit` | — | Seconds. SDK shows a countdown and auto-submits at 0. |
+| `drawsFrom[]` | — | Lesson ids this exam covers; the score breakdown labels chapters using these ids. |
+
+**Authoring rules of thumb:**
+
+- Exam lessons should contain **only** `exercise` blocks. No `explanation`,
+  no `vocabulary` introductions — the exam tests, it doesn't teach.
+- Aim for ~20 items per chapter exam, ~50 for a pack-final.
+- Distribution: equal weight per `drawsFrom` chapter is the safe default
+  (so a 12-chapter pack-final has ~1.7 items per chapter). If your skill
+  tags suggest a different weighting, use them — but make the choice
+  deliberately.
+- Mix exercise families. A featured-eligible pack-final touches at least
+  3 of the 10 families.
+- Place the exam lesson last in `manifest.lessons[]` so the path UI ends
+  on it; flag the previous lesson as its prerequisite.
+
+---
+
+## 19. Locale coverage and translation provenance (1.2.0)
+
+Two locale signals come out of every 1.2.0 pack — one **derived** from
+content, one **declared** by the author. Both surface in the registry's
+catalog and in the SDK's UI.
+
+### 19.1 `supportedLocales` and `localeCoverage` (derived)
+
+The registry walks every translatable atom in your pack at ingest time and
+produces:
+
+| Signal | What it measures | UI use |
+|---|---|---|
+| `supportedLocales: ["tr", "en"]` | Locale codes that cover **≥90%** of the *core teaching atoms*. Drives the Discover "For X speakers" filter. | Binary filter signal — pack appears in those locales' catalogs. |
+| `localeCoverage: { "tr": 0.996, "en": 0.534, ... }` | Pool-wide fraction (0..1) of *every* translatable atom each locale fills. | Transparency chip — "EN: %53" badge so users know examples may fall back to another locale. |
+
+**Atom-kind allowlist** — these contribute to `supportedLocales`:
+
+- `vocabulary.items[].translations`
+- `kanji.items[].meanings`
+- `grammar.meanings` / `formations` / `usages` / `watchOuts`
+
+**Pool-only atoms** (count toward `localeCoverage` but NOT toward the
+≥90% supported threshold):
+
+- `vocabulary.items[].examples[].translations`
+- `dialogue.lines[].translations`, `dialogue.contexts`
+- `kanji.items[].examples[].translations`, `kanji.items[].mnemonics`
+- `grammar.examples[].translations`
+
+The split exists because example sentences and dialogues are valuable but
+heavyweight — a pack whose vocab/grammar/kanji headlines are translated to
+EN but whose example sentences are TR-only is **legitimately EN-supported**:
+the SDK's locale fallback chain renders examples in the next-best locale,
+and the user gets a usable EN learning experience.
+
+### 19.2 `manifest.translationStatus` (declared)
+
+Independent of the derived signals, you declare per-locale **provenance**
+in your manifest. This is purely a quality declaration — the registry
+trusts you.
+
+```json
+"translationStatus": {
+  "tr":      "native",
+  "en":      "native",
+  "de":      "machine",
+  "zh-Hans": "machine",
+  "es":      "reviewed"
+}
+```
+
+| Value | Meaning | UI badge |
+|---|---|---|
+| `native` | Human-authored or curated dictionary source. | none / green tick |
+| `machine` | LLM auto-translated, no human review. | "Auto-translated" |
+| `reviewed` | Machine-translated, then reviewed by a native speaker. | "Verified" |
+| `partial` | Some atoms missing for this locale (e.g. legacy migration). | "Partial" |
+
+Pattern for an evolving pack:
+
+1. **1.0.0** — `{ "tr": "native", "en": "native" }`. Auto-translate not run yet.
+2. **1.1.0** — add `{ "de": "machine", "zh-Hans": "machine", "es": "machine" }` after a Gemini/DeepSeek pass.
+3. **1.2.0** — promote DE to `"reviewed"` once a native speaker has gone over the auto output.
+
+The registry ingests `translationStatus` verbatim; immutability still
+applies (every version is its own row).
+
+### 19.3 Reading the CLI output
+
+`paktly pack validate` shows both signals on a successful run:
+
+```
+OK   ./genki1
+     id=dev.paktly.originals.ja-genki1  version=1.0.0  schema=1.2.0
+     size=2.3MB  sha256=ab12cd34ef56…
+     lessons=13  ai=questionGeneration,explanation,hint
+     supportedLocales=en,tr
+     localeCoverage=tr=99.6% en=53.4% de=38.8% es=38.8% zh-Hans=38.8%
+```
+
+Read this as: the pack ships full TR (vocab/grammar/kanji headlines AND
+examples), full EN core (headlines), but EN examples are TR-only — so EN
+users will see Japanese targets translated to English in vocab cards but
+example sentences in Turkish until you fill the gap in a follow-up version.

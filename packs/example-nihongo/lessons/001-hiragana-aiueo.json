@@ -14,53 +14,53 @@
       "items": [
         {
           "target": "あ",
-          "translation": "a",
+          "translations": { "tr": "a", "en": "a" },
           "transliteration": "a",
           "audio": "media/audio/a.mp3",
           "ipa": "/a/",
           "examples": [
-            { "text": "あい",   "translation": "aşk",  "notes": "İlk öğrendiğiniz kelime — iki harfli." },
-            { "text": "あさ",   "translation": "sabah" }
+            { "text": "あい",   "translations": { "tr": "aşk",   "en": "love" }, "notes": "İlk öğrendiğiniz kelime — iki harfli." },
+            { "text": "あさ",   "translations": { "tr": "sabah", "en": "morning" } }
           ]
         },
         {
           "target": "い",
-          "translation": "i",
+          "translations": { "tr": "i", "en": "i" },
           "transliteration": "i",
           "audio": "media/audio/i.mp3",
           "ipa": "/i/",
           "examples": [
-            { "text": "いえ", "translation": "ev" }
+            { "text": "いえ", "translations": { "tr": "ev", "en": "house" } }
           ]
         },
         {
           "target": "う",
-          "translation": "u",
+          "translations": { "tr": "u", "en": "u" },
           "transliteration": "u",
           "audio": "media/audio/u.mp3",
           "ipa": "/ɯ/",
           "examples": [
-            { "text": "うえ", "translation": "üst",   "notes": "İngilizce 'oo' değil; dudaklar yuvarlanmaz." }
+            { "text": "うえ", "translations": { "tr": "üst", "en": "above" }, "notes": "İngilizce 'oo' değil; dudaklar yuvarlanmaz." }
           ]
         },
         {
           "target": "え",
-          "translation": "e",
+          "translations": { "tr": "e", "en": "e" },
           "transliteration": "e",
           "audio": "media/audio/e.mp3",
           "ipa": "/e/",
           "examples": [
-            { "text": "えき", "translation": "istasyon" }
+            { "text": "えき", "translations": { "tr": "istasyon", "en": "station" } }
           ]
         },
         {
           "target": "お",
-          "translation": "o",
+          "translations": { "tr": "o", "en": "o" },
           "transliteration": "o",
           "audio": "media/audio/o.mp3",
           "ipa": "/o/",
           "examples": [
-            { "text": "おかね", "translation": "para" }
+            { "text": "おかね", "translations": { "tr": "para", "en": "money" } }
           ]
         }
       ]
@@ -70,23 +70,22 @@
       "exerciseType": "flashcard",
       "prompt": "Bu harfin okunuşu nedir?",
       "data": {
-        "cards": [
-          { "front": "あ", "back": "a" },
-          { "front": "い", "back": "i" },
-          { "front": "う", "back": "u" },
-          { "front": "え", "back": "e" },
-          { "front": "お", "back": "o" }
-        ]
-      }
+        "front": { "text": "あ" },
+        "back":  { "text": "a", "audio": "media/audio/a.mp3" }
+      },
+      "skills": ["vocab.hiragana", "reading.basic"]
     },
     {
       "type": "exercise",
       "exerciseType": "multipleChoice",
       "prompt": "「い」 harfinin okunuşu hangisidir?",
       "data": {
-        "choices": ["a", "i", "u", "e"],
-        "correctIndex": 1
-      }
+        "options": ["a", "i", "u", "e"],
+        "correctIndex": 1,
+        "explanation": "い hiragana'sı 'i' sesini verir."
+      },
+      "skills": ["vocab.hiragana"],
+      "distractorTags": ["confusion-a", null, "confusion-u", "confusion-e"]
     }
   ]
 }

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://languageapp.example/schemas/lesson.schema.json",
   "title": "Lesson",
-  "description": "A single lesson: a sequence of content blocks (explanations, vocab, exercises)",
+  "description": "A single lesson: a sequence of content blocks. Schema 1.2.0 adds dialogue/kanji/grammar blocks, multi-locale translation maps (translations / meanings / etc.), mock-exam lesson fields (examMode/passingScore/timeLimit/drawsFrom), and optional skill/distractor diagnostic tags on exercises. All additions are backwards-compatible — packs targeting 1.0.0 / 1.1.0 keep validating.",
   "type": "object",
   "required": ["id", "title", "blocks"],
   "properties": {
@@ -22,6 +22,26 @@
       "type": "array",
       "minItems": 1,
       "items": { "$ref": "#/$defs/block" }
+    },
+    "examMode": {
+      "type": "boolean",
+      "description": "Schema 1.2.0+. When true, this lesson is a mock exam: SDK disables hints, enforces a single attempt, and shows a final score breakdown. Passing score gates pack completion."
+    },
+    "passingScore": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Schema 1.2.0+. Score (0..1) the learner must reach in an examMode lesson. Defaults to 0.8 if examMode=true and this is omitted."
+    },
+    "timeLimit": {
+      "type": "integer",
+      "minimum": 30,
+      "description": "Schema 1.2.0+. Optional. Time limit in seconds for an examMode lesson. SDK shows a countdown."
+    },
+    "drawsFrom": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Schema 1.2.0+. Optional. Lesson ids whose content this exam covers. Used by the SDK to label score breakdown by chapter."
     }
   },
   "additionalProperties": false,
@@ -30,9 +50,23 @@
       "oneOf": [
         { "$ref": "#/$defs/explanationBlock" },
         { "$ref": "#/$defs/vocabularyBlock" },
-        { "$ref": "#/$defs/exerciseBlock" }
+        { "$ref": "#/$defs/exerciseBlock" },
+        { "$ref": "#/$defs/dialogueBlock" },
+        { "$ref": "#/$defs/kanjiBlock" },
+        { "$ref": "#/$defs/grammarBlock" }
       ]
     },
+
+    "localizedString": {
+      "type": "object",
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z]{2,3}(-[A-Za-z][A-Za-z0-9]*)?$": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false,
+      "description": "Map of BCP-47 / ISO 639 locale code → string. Locale codes match ^[a-z]{2,3}(-[A-Za-z][A-Za-z0-9]*)?$ — e.g. tr, en, de, zh-Hans, pt-BR."
+    },
+
     "explanationBlock": {
       "type": "object",
       "required": ["type", "text"],
@@ -43,6 +77,7 @@
       },
       "additionalProperties": false
     },
+
     "vocabularyBlock": {
       "type": "object",
       "required": ["type", "items"],
@@ -53,10 +88,18 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "required": ["target", "translation"],
+            "required": ["target"],
+            "anyOf": [
+              { "required": ["translation"] },
+              { "required": ["translations"] }
+            ],
             "properties": {
               "target": { "type": "string", "description": "Word/phrase in the language being learned" },
-              "translation": { "type": "string" },
+              "translation": { "type": "string", "description": "Single-locale translation. Legacy convenience field; prefer `translations` for multi-locale packs. SDK falls back to this when the user's locale is missing from `translations`." },
+              "translations": {
+                "$ref": "#/$defs/localizedString",
+                "description": "Schema 1.2.0+. Multi-locale translation map. SDK resolves: userLocale → manifest.uiLanguage → translation. At least one of `translation` or `translations` must be present."
+              },
               "transliteration": { "type": "string", "description": "e.g. romaji for Japanese" },
               "audio": { "type": "string", "description": "Path to audio file relative to pack root. Optional in 1.1.0+; SDK falls back to platform TTS when absent." },
               "image": { "type": "string" },
@@ -65,17 +108,7 @@
               "examples": {
                 "type": "array",
                 "description": "Optional. Example sentences featuring this vocab item.",
-                "items": {
-                  "type": "object",
-                  "required": ["text", "translation"],
-                  "properties": {
-                    "text": { "type": "string", "description": "Example sentence in the target language" },
-                    "translation": { "type": "string", "description": "Translation in the pack's UI language" },
-                    "audio": { "type": "string", "description": "Optional. Path to audio file relative to pack root." },
-                    "notes": { "type": "string", "description": "Optional. Grammar / cultural note." }
-                  },
-                  "additionalProperties": false
-                }
+                "items": { "$ref": "#/$defs/localizedExample" }
               }
             },
             "additionalProperties": false
@@ -84,6 +117,27 @@
       },
       "additionalProperties": false
     },
+
+    "localizedExample": {
+      "type": "object",
+      "required": ["text"],
+      "anyOf": [
+        { "required": ["translation"] },
+        { "required": ["translations"] }
+      ],
+      "properties": {
+        "text": { "type": "string", "description": "Example sentence in the target language" },
+        "translation": { "type": "string", "description": "Single-locale translation. Legacy convenience field." },
+        "translations": {
+          "$ref": "#/$defs/localizedString",
+          "description": "Schema 1.2.0+. Multi-locale translation map."
+        },
+        "audio": { "type": "string", "description": "Optional. Path to audio file relative to pack root." },
+        "notes": { "type": "string", "description": "Optional. Grammar / cultural note." }
+      },
+      "additionalProperties": false
+    },
+
     "exerciseBlock": {
       "type": "object",
       "required": ["type", "exerciseType"],
@@ -109,10 +163,181 @@
         "data": {
           "type": "object",
           "description": "Exercise-type-specific payload; SDK validates against per-type sub-schema"
+        },
+        "skills": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Schema 1.2.0+. Optional. Free-form skill tags this exercise tests, e.g. [\"vocab.n5\", \"grammar.particle.wa\"]. Used by future SRS / diagnostic features (Phase 6+); SDK currently ignores them but they're reserved so packs that emit them won't need rewriting later."
+        },
+        "distractorTags": {
+          "type": "array",
+          "items": { "type": ["string", "null"] },
+          "description": "Schema 1.2.0+. Optional. One entry per option in the exercise's choice list (multipleChoice options, matching pairs, etc.), labelling why each distractor is wrong (e.g. \"vocab_confusion_doctor\"). null = no diagnostic tag for that index, including the correct option. Phase 6+ analytics consume this; SDK currently ignores."
         }
       },
       "additionalProperties": false
     },
+
+    "dialogueBlock": {
+      "type": "object",
+      "required": ["type", "lines"],
+      "properties": {
+        "type": { "const": "dialogue" },
+        "context": {
+          "type": "string",
+          "description": "Schema 1.2.0+. Optional setting / scene description shown above the dialogue (single-locale)."
+        },
+        "contexts": {
+          "$ref": "#/$defs/localizedString",
+          "description": "Schema 1.2.0+. Multi-locale alternative to `context`."
+        },
+        "lines": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["target"],
+            "anyOf": [
+              { "required": ["translation"] },
+              { "required": ["translations"] }
+            ],
+            "properties": {
+              "speaker": { "type": "string", "description": "Speaker label, e.g. \"A\", \"店員\", \"Tanaka\". Free-form; SDK groups consecutive lines from the same speaker." },
+              "target": { "type": "string", "minLength": 1, "description": "Line in the target language." },
+              "translation": { "type": "string", "description": "Single-locale translation. Legacy convenience." },
+              "translations": {
+                "$ref": "#/$defs/localizedString",
+                "description": "Multi-locale translation map."
+              },
+              "audio": { "type": "string", "description": "Optional. Path to audio file relative to pack root." },
+              "notes": { "type": "string", "description": "Optional. Grammar / cultural note." }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "kanjiBlock": {
+      "type": "object",
+      "required": ["type", "items"],
+      "properties": {
+        "type": { "const": "kanji" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["character"],
+            "anyOf": [
+              { "required": ["meaning"] },
+              { "required": ["meanings"] }
+            ],
+            "properties": {
+              "character": { "type": "string", "minLength": 1, "maxLength": 8, "description": "The kanji glyph itself (typically a single character; allowed up to 8 to permit short character clusters)." },
+              "meaning": { "type": "string", "description": "Single-locale meaning. Legacy convenience." },
+              "meanings": {
+                "$ref": "#/$defs/localizedString",
+                "description": "Multi-locale meaning map."
+              },
+              "onyomi": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 },
+                "description": "On'yomi readings (typically katakana, e.g. [\"ニチ\", \"ジツ\"])."
+              },
+              "kunyomi": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 },
+                "description": "Kun'yomi readings (typically hiragana with okurigana hint, e.g. [\"ひ\", \"-び\", \"-か\"])."
+              },
+              "strokes": { "type": "integer", "minimum": 1, "maximum": 100 },
+              "jlptLevel": {
+                "type": "string",
+                "enum": ["N5", "N4", "N3", "N2", "N1"]
+              },
+              "radicals": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 },
+                "description": "Optional. Component radicals."
+              },
+              "mnemonic": { "type": "string", "description": "Single-locale mnemonic." },
+              "mnemonics": {
+                "$ref": "#/$defs/localizedString",
+                "description": "Multi-locale mnemonic map."
+              },
+              "audio": { "type": "string", "description": "Optional pronunciation audio for the primary reading." },
+              "examples": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/kanjiExample" },
+                "description": "Optional. Compound words demonstrating this kanji in context."
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "kanjiExample": {
+      "type": "object",
+      "required": ["word"],
+      "anyOf": [
+        { "required": ["translation"] },
+        { "required": ["translations"] }
+      ],
+      "properties": {
+        "word": { "type": "string", "minLength": 1, "description": "Compound word or phrase that uses the parent kanji." },
+        "reading": { "type": "string", "description": "Reading of the compound (typically hiragana)." },
+        "translation": { "type": "string" },
+        "translations": { "$ref": "#/$defs/localizedString" },
+        "audio": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+
+    "grammarBlock": {
+      "type": "object",
+      "required": ["type", "pattern"],
+      "anyOf": [
+        { "required": ["meaning"] },
+        { "required": ["meanings"] }
+      ],
+      "properties": {
+        "type": { "const": "grammar" },
+        "pattern": { "type": "string", "minLength": 1, "description": "The grammar pattern itself, e.g. \"～は～です\"." },
+        "level": {
+          "type": "string",
+          "enum": ["N5", "N4", "N3", "N2", "N1", "A1", "A2", "B1", "B2", "C1", "C2"],
+          "description": "JLPT or CEFR level this pattern belongs to."
+        },
+        "meaning": { "type": "string", "description": "Brief one-line gloss in a single locale." },
+        "meanings": {
+          "$ref": "#/$defs/localizedString",
+          "description": "Multi-locale gloss map."
+        },
+        "formation": { "type": "string", "description": "How the pattern is built, single-locale (e.g. \"Noun + は + Noun + です\")." },
+        "formations": { "$ref": "#/$defs/localizedString" },
+        "usage": { "type": "string", "description": "When to use it, single-locale paragraph." },
+        "usages": { "$ref": "#/$defs/localizedString" },
+        "watchOut": { "type": "string", "description": "Common pitfalls / nuance, single-locale." },
+        "watchOuts": { "$ref": "#/$defs/localizedString" },
+        "examples": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/localizedExample" },
+          "description": "Example sentences using the pattern."
+        },
+        "related": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Names / patterns of related grammar points (free-form references)."
+        },
+        "audio": { "type": "string", "description": "Optional. Pronunciation of the pattern's archetypal form." }
+      },
+      "additionalProperties": false
+    },
+
     "mediaRef": {
       "type": "object",
       "properties": {

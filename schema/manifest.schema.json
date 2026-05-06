@@ -170,6 +170,19 @@
       "type": "string",
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*\\.[a-z0-9]+(-[a-z0-9]+)*(\\.[a-z0-9]+(-[a-z0-9]+)*)+$",
       "description": "Optional. Pack id of the recommended next pack in a curated level path"
+    },
+    "translationStatus": {
+      "type": "object",
+      "description": "Schema 1.2.0+. Optional. Per-locale provenance signal for the translations the pack ships. Keys are BCP-47 locale codes (must lowercase + optional region/script suffix); values describe how the translation was produced. UI surfaces this so users can distinguish native-quality content from machine-translated material. The registry's `supportedLocales` and `localeCoverage` are derived independently from the actual lesson content; this field is purely a quality declaration by the creator.",
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z]{2,3}(-[A-Za-z][A-Za-z0-9]*)?$": {
+          "type": "string",
+          "enum": ["native", "machine", "reviewed", "partial"],
+          "description": "native = human-authored or curated dictionary. machine = LLM auto-translated, unreviewed. reviewed = machine + human review. partial = some atoms missing (legacy / migrating)."
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

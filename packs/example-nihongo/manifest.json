@@ -1,9 +1,9 @@
 {
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.2.0",
   "id": "com.github.ata.example-nihongo",
   "name": "Japonca Başlangıç",
-  "version": "0.2.0",
-  "description": "Sıfırdan Japonca: hiragana ve temel selamlaşmalar.",
+  "version": "0.3.0",
+  "description": "Sıfırdan Japonca: hiragana, selamlaşma ve ilk gramer pattern'i. 1.2.0 schema'nın canlı referansı: vocabulary + dialogue + kanji + grammar block'ları, multi-locale çeviriler, ders sonu mock sınav.",
   "language": {
     "code": "ja",
     "name": "Japanese",
@@ -22,10 +22,11 @@
     "type": "git",
     "url": "https://github.com/ata/example-nihongo"
   },
-  "tags": ["japanese", "hiragana", "beginner"],
+  "tags": ["japanese", "hiragana", "beginner", "schema-1.2.0-reference"],
   "lessons": [
     { "id": "001-hiragana-aiueo", "file": "lessons/001-hiragana-aiueo.json", "title": "Hiragana: あいうえお", "order": 1 },
-    { "id": "002-greetings",       "file": "lessons/002-greetings.json",       "title": "Selamlaşma",     "order": 2 }
+    { "id": "002-greetings",      "file": "lessons/002-greetings.json",      "title": "Selamlaşma",             "order": 2 },
+    { "id": "003-final-exam",     "file": "lessons/003-final-exam.json",    "title": "Pack 1 — Final Sınavı",  "order": 3 }
   ],
   "aiCapabilities": {
     "questionGeneration": true,
@@ -33,5 +34,5 @@
     "conversation": false,
     "hint": true
   },
-  "minSdkVersion": "1.1.0"
+  "minSdkVersion": "1.2.0"
 }

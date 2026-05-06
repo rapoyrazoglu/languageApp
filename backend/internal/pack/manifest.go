@@ -22,6 +22,12 @@ type Manifest struct {
 	AICapabilities *AICapabilities `json:"aiCapabilities,omitempty"` // schema 1.1.0+
 	PreviousPack   string          `json:"previousPack,omitempty"`   // schema 1.1.0+
 	NextPack       string          `json:"nextPack,omitempty"`       // schema 1.1.0+
+
+	// TranslationStatus is the creator's declaration of where each locale's
+	// translations came from (native / machine / reviewed / partial). It is
+	// purely a quality signal — the registry computes `supportedLocales` and
+	// `localeCoverage` independently from the lesson content. Schema 1.2.0+.
+	TranslationStatus map[string]string `json:"translationStatus,omitempty"`
 }
 
 // AICapabilities flags which AI affordances a pack expects to support. Pure

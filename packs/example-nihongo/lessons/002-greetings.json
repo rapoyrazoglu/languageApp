@@ -1,8 +1,8 @@
 {
   "id": "002-greetings",
   "title": "Selamlaşma",
-  "description": "Günlük hayatta sık kullanılan Japonca selamlar.",
-  "estimatedMinutes": 8,
+  "description": "Günlük hayatta sık kullanılan Japonca selamlar — bir diyalog, bir kanji, bir gramer kalıbı.",
+  "estimatedMinutes": 12,
   "prerequisites": ["001-hiragana-aiueo"],
   "blocks": [
     {
@@ -10,48 +10,156 @@
       "items": [
         {
           "target": "こんにちは",
-          "translation": "Merhaba",
+          "translations": {
+            "tr": "Merhaba",
+            "en": "Hello",
+            "de": "Hallo",
+            "zh-Hans": "你好",
+            "es": "Hola"
+          },
           "transliteration": "konnichiwa",
           "audio": "media/audio/konnichiwa.mp3",
           "ipa": "/koɲɲitɕiwa/",
           "notes": "Gün ortası kullanılır. Sabah erken veya akşam karanlığında alternatifleri tercih edilir.",
           "examples": [
-            { "text": "こんにちは、田中さん。", "translation": "Merhaba Tanaka-san." },
-            { "text": "こんにちは、お元気ですか?", "translation": "Merhaba, nasılsın?" }
+            {
+              "text": "こんにちは、田中さん。",
+              "translations": { "tr": "Merhaba Tanaka-san.", "en": "Hello, Tanaka-san." }
+            },
+            {
+              "text": "こんにちは、お元気ですか?",
+              "translations": { "tr": "Merhaba, nasılsın?", "en": "Hello, how are you?" }
+            }
           ]
         },
         {
           "target": "おはよう",
-          "translation": "Günaydın",
+          "translations": { "tr": "Günaydın", "en": "Good morning" },
           "transliteration": "ohayou",
           "audio": "media/audio/ohayou.mp3",
           "ipa": "/ohajoː/",
           "notes": "Resmi ortamlarda 'おはようございます' (ohayou gozaimasu) tercih edilir.",
           "examples": [
-            { "text": "おはようございます。", "translation": "Günaydın (resmi)." }
+            {
+              "text": "おはようございます。",
+              "translations": { "tr": "Günaydın (resmi).", "en": "Good morning (formal)." }
+            }
           ]
         },
         {
           "target": "こんばんは",
-          "translation": "İyi akşamlar",
+          "translations": { "tr": "İyi akşamlar", "en": "Good evening" },
           "transliteration": "konbanwa",
           "audio": "media/audio/konbanwa.mp3",
           "ipa": "/kombaɰ̃wa/",
           "examples": [
-            { "text": "こんばんは、お疲れ様。", "translation": "İyi akşamlar, kolay gelsin." }
+            {
+              "text": "こんばんは、お疲れ様。",
+              "translations": { "tr": "İyi akşamlar, kolay gelsin.", "en": "Good evening, well done." }
+            }
           ]
         },
         {
           "target": "ありがとう",
-          "translation": "Teşekkürler",
+          "translations": { "tr": "Teşekkürler", "en": "Thank you" },
           "transliteration": "arigatou",
           "audio": "media/audio/arigatou.mp3",
           "ipa": "/aɾiɡatoː/",
           "notes": "Resmi: 'ありがとうございます' (arigatou gozaimasu).",
           "examples": [
-            { "text": "本当にありがとう。", "translation": "Gerçekten teşekkürler." },
-            { "text": "ありがとうございます。", "translation": "Teşekkür ederim (resmi)." }
+            {
+              "text": "本当にありがとう。",
+              "translations": { "tr": "Gerçekten teşekkürler.", "en": "Really, thank you." }
+            }
           ]
+        }
+      ]
+    },
+    {
+      "type": "dialogue",
+      "contexts": {
+        "tr": "İki tanıdık öğleden sonra sokakta karşılaşıyor.",
+        "en": "Two acquaintances run into each other in the afternoon."
+      },
+      "lines": [
+        {
+          "speaker": "A",
+          "target": "こんにちは、田中さん。",
+          "translations": {
+            "tr": "Merhaba Tanaka-san.",
+            "en": "Hello, Tanaka-san."
+          }
+        },
+        {
+          "speaker": "B",
+          "target": "こんにちは。お元気ですか?",
+          "translations": {
+            "tr": "Merhaba. Nasılsın?",
+            "en": "Hello. How are you?"
+          }
+        },
+        {
+          "speaker": "A",
+          "target": "元気です。ありがとう。",
+          "translations": {
+            "tr": "İyiyim. Teşekkürler.",
+            "en": "I'm well. Thank you."
+          }
+        }
+      ]
+    },
+    {
+      "type": "kanji",
+      "items": [
+        {
+          "character": "日",
+          "meanings": { "tr": "gün, güneş", "en": "day, sun" },
+          "onyomi": ["ニチ", "ジツ"],
+          "kunyomi": ["ひ", "-び", "-か"],
+          "strokes": 4,
+          "jlptLevel": "N5",
+          "mnemonics": {
+            "tr": "Bir pencereden gelen güneş — kare içinde tek bir çizgi.",
+            "en": "Sun seen through a window — one line inside a square."
+          },
+          "examples": [
+            {
+              "word": "今日",
+              "reading": "きょう",
+              "translations": { "tr": "bugün", "en": "today" }
+            },
+            {
+              "word": "日本",
+              "reading": "にほん",
+              "translations": { "tr": "Japonya", "en": "Japan" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "grammar",
+      "pattern": "～は～です",
+      "level": "N5",
+      "meanings":   { "tr": "~ dır/dir (kibar)", "en": "~ is ~ (polite)" },
+      "formations": { "tr": "İsim + は + İsim + です", "en": "Noun + は + Noun + です" },
+      "usages": {
+        "tr": "Japoncanın en temel cümle yapısı. Konu (は) ile tanımlama (です) arasında bağ kurar; kibar konuşma için です gereklidir.",
+        "en": "Japanese's most fundamental sentence pattern. Links a topic (は) to its identification (です); です is required for polite speech."
+      },
+      "watchOuts": {
+        "tr": "は burada 'wa' okunur, 'ha' değil. Samimi konuşmada です yerine だ kullanılır.",
+        "en": "は here reads 'wa', not 'ha'. In casual speech だ replaces です."
+      },
+      "related": ["～は～じゃないです", "～は～でした"],
+      "examples": [
+        {
+          "text": "私は学生です。",
+          "translations": { "tr": "Ben öğrenciyim.", "en": "I am a student." }
+        },
+        {
+          "text": "東京は日本の首都です。",
+          "translations": { "tr": "Tokyo Japonya'nın başkentidir.", "en": "Tokyo is the capital of Japan." }
         }
       ]
     },
@@ -61,11 +169,12 @@
       "prompt": "Japoncasıyla Türkçesini eşleştir.",
       "data": {
         "pairs": [
-          { "left": "こんにちは", "right": "Merhaba" },
-          { "left": "おはよう",   "right": "Günaydın" },
-          { "left": "ありがとう", "right": "Teşekkürler" }
+          { "left": { "text": "こんにちは" }, "right": { "text": "Merhaba" } },
+          { "left": { "text": "おはよう" },   "right": { "text": "Günaydın" } },
+          { "left": { "text": "ありがとう" }, "right": { "text": "Teşekkürler" } }
         ]
-      }
+      },
+      "skills": ["vocab.greetings"]
     },
     {
       "type": "exercise",
@@ -73,9 +182,10 @@
       "prompt": "\"Teşekkürler\" Japonca nasıl yazılır? (romaji ile)",
       "data": {
         "answer": "arigatou",
-        "acceptableAnswers": ["arigatou", "arigato"],
+        "acceptedAlternatives": ["arigato"],
         "caseSensitive": false
-      }
+      },
+      "skills": ["vocab.greetings", "writing.romaji"]
     },
     {
       "type": "exercise",
@@ -83,9 +193,10 @@
       "prompt": "Duyduğun kelimeyi seç.",
       "data": {
         "audio": "media/audio/konnichiwa.mp3",
-        "choices": ["こんにちは", "こんばんは", "おはよう"],
+        "options": ["こんにちは", "こんばんは", "おはよう"],
         "correctIndex": 0
-      }
+      },
+      "skills": ["listening.greetings"]
     }
   ]
 }

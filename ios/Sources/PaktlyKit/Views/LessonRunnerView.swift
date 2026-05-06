@@ -78,6 +78,15 @@ public struct LessonRunnerView: View {
                 onAudioRequest: onAudioRequest,
                 onFinish: { _ in handleAdvance() }
             )
+        // Schema 1.2.0+ blocks: dedicated views are scheduled for a follow-up
+        // PR. The runner needs to handle the cases so the switch is exhaustive
+        // and 1.2.0 packs decode + advance through these blocks without crashing.
+        case .dialogue(let b):
+            UnrenderedBlockPlaceholder(label: "dialogue", detail: "\(b.lines.count) lines")
+        case .kanji(let b):
+            UnrenderedBlockPlaceholder(label: "kanji", detail: "\(b.items.count) items")
+        case .grammar(let b):
+            UnrenderedBlockPlaceholder(label: "grammar", detail: b.pattern)
         }
     }
 
@@ -133,6 +142,32 @@ struct EmptyLessonView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
+        .padding()
+    }
+}
+
+/// Stand-in for 1.2.0 blocks (`dialogue`, `kanji`, `grammar`) until their
+/// dedicated render views ship. Lets the runner advance past these blocks
+/// without crashing or silently dropping them, and gives developers a visible
+/// hint that they're in the lesson stream.
+struct UnrenderedBlockPlaceholder: View {
+    let label: String
+    let detail: String
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "rectangle.stack.badge.plus")
+                .font(.largeTitle)
+                .foregroundStyle(.secondary)
+            Text(label)
+                .font(.headline)
+                .textCase(.uppercase)
+                .tracking(0.08)
+            Text(detail)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()
     }
 }

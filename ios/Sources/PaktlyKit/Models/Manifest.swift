@@ -29,6 +29,13 @@ public struct Manifest: Codable, Equatable, Sendable {
     public let previousPack: String?
     public let nextPack: String?
 
+    // Schema 1.2.0+
+    /// Per-locale provenance signal — e.g. `["tr": .native, "de": .machine]`.
+    /// Independent from the registry-derived `supportedLocales` / `localeCoverage`;
+    /// this is purely the creator's quality declaration. UI surfaces show
+    /// e.g. an "Auto-translated" badge for locales marked `.machine`.
+    public let translationStatus: [String: TranslationProvenance]?
+
     public init(
         schemaVersion: String,
         id: String,
@@ -48,7 +55,8 @@ public struct Manifest: Codable, Equatable, Sendable {
         minSdkVersion: String? = nil,
         aiCapabilities: AICapabilities? = nil,
         previousPack: String? = nil,
-        nextPack: String? = nil
+        nextPack: String? = nil,
+        translationStatus: [String: TranslationProvenance]? = nil
     ) {
         self.schemaVersion = schemaVersion
         self.id = id
@@ -69,6 +77,7 @@ public struct Manifest: Codable, Equatable, Sendable {
         self.aiCapabilities = aiCapabilities
         self.previousPack = previousPack
         self.nextPack = nextPack
+        self.translationStatus = translationStatus
     }
 
     // Manual decode so missing `tags` / `dependencies` decode as empty arrays
@@ -94,7 +103,20 @@ public struct Manifest: Codable, Equatable, Sendable {
         self.aiCapabilities = try c.decodeIfPresent(AICapabilities.self, forKey: .aiCapabilities)
         self.previousPack = try c.decodeIfPresent(String.self, forKey: .previousPack)
         self.nextPack = try c.decodeIfPresent(String.self, forKey: .nextPack)
+        self.translationStatus = try c.decodeIfPresent([String: TranslationProvenance].self, forKey: .translationStatus)
     }
+}
+
+/// Provenance signal for a single locale's translations. Schema 1.2.0+.
+public enum TranslationProvenance: String, Codable, Sendable {
+    /// Human-authored or curated dictionary source.
+    case native
+    /// LLM auto-translated, no human review.
+    case machine
+    /// Machine-translated then reviewed by a native speaker.
+    case reviewed
+    /// Some atoms missing (legacy/migrating packs).
+    case partial
 }
 
 // MARK: - Language
@@ -155,7 +177,7 @@ public struct Repository: Codable, Equatable, Sendable {
     }
 }
 
-public struct LessonRef: Codable, Equatable, Sendable {
+public struct LessonRef: Codable, Equatable, Sendable, Hashable, Identifiable {
     public let id: String
     public let file: String
     public let title: String?
